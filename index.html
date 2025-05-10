@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="de">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Auto Rennspiel</title>
+  </head>
+  <body>
+    <div id="app">
+      <div id="game-container">
+        <div id="ui-top">
+          <div id="timer">0:00</div>
+          <div id="lap-counter">Runde: 0/3</div>
+          <div id="ranking">
+            <div class="ranking-title">Rangliste</div>
+            <div class="ranking-item" id="rank-player">1. Enzo <span class="car-color red"></span></div>
+            <div class="ranking-item" id="rank-ai1">2. F50 <span class="car-color black"></span></div>
+            <div class="ranking-item" id="rank-ai2">3. 360 Spider <span class="car-color orange"></span></div>
+          </div>
+          <button id="reset-button">Reset</button>
+        </div>
+        <div id="game-area">
+          <canvas id="game-canvas"></canvas>
+          <div id="game-overlay">
+            <button id="start-button">Start</button>
+            <div id="traffic-light">
+              <div class="light red"></div>
+              <div class="light yellow"></div>
+              <div class="light green"></div>
+            </div>
+            <div id="countdown">3</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="module" src="/src/main.ts"></script>
+  </body>
+</html>
