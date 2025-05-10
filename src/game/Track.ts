@@ -296,14 +296,16 @@ export class Track {
       end: { x: centerX, y: outerBottom - 2 }    // -2 Pixel Korrektur nach oben
     };
     
-    // Startpositionen der Autos - etwas vor der Startlinie
-    const startY = outerBottom - trackWidth / 2;
-    const offsetX = 40; // Abstand vor der Startlinie
+    // Startpositionen der Autos entlang der vertikalen Startlinie verteilen
+    // Die Y-Position ist unterschiedlich, die X-Position ist links vor der Startlinie
+    const lineLength = (outerBottom - innerBottom) - 4; // Länge der Startlinie minus Korrekturen
+    const carSpacing = lineLength / 5; // Größerer Abstand zwischen den Autos (von 4 auf 5)
+    const offsetX = 30; // Abstand vor der Startlinie (nach links) - von 15 auf 30 erhöht
     
     this.startPositions = [
-      { x: centerX - offsetX, y: startY }, // Spieler (Mitte)
-      { x: centerX - offsetX - 30, y: startY - 15 }, // KI 1 (links)
-      { x: centerX - offsetX + 30, y: startY + 15 }  // KI 2 (rechts)
+      { x: centerX - offsetX, y: innerBottom + carSpacing }, // Spieler oben
+      { x: centerX - offsetX, y: innerBottom + carSpacing * 2.5 }, // KI 1 mitte (mehr Abstand)
+      { x: centerX - offsetX, y: innerBottom + carSpacing * 4 }  // KI 2 unten
     ];
     
     // Checkpoints für die Rundenerfassung

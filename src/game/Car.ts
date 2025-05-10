@@ -1,5 +1,4 @@
-import { Collision } from './Collision';
-import { Track } from './Track';
+import type { Collision } from './Collision';
 import type { Position, Size } from './types';
 
 export class Car {
