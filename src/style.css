@@ -51,33 +51,55 @@ h1 {
 }
 
 #ui-top {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
-  width: 100%;
+  display: flex;
+  justify-content: flex-end;
+  width: 600px; /* exakt wie #game-area */
   margin-bottom: 10px;
   padding: 10px;
   background-color: #222;
   border-radius: 10px;
+  box-sizing: border-box;
+}
+
+#ui-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 20px;
+  z-index: 10;
+}
+#ui-center .hidden {
+  display: none !important;
+}
+
+#timer-container {
+  width: 100px;
+  text-align: center;
+  display: flex;
+  justify-content: center;
 }
 
 #timer {
-  font-size: 24px;
+  font-size: 32px;
+  font-weight: bold;
   text-align: center;
-  grid-column: 2;
+  font-family: monospace;
 }
 
 #lap-counter {
-  font-size: 18px;
+  font-size: 20px;
   text-align: center;
   margin-top: 5px;
   grid-column: 2;
 }
 
 #ranking {
-  grid-column: 3;
+  width: 220px; /* Optional: Feste Breite für das Ranking-Panel */
   padding: 10px;
   background-color: #333;
-  border-radius: 5px;
+  border-radius: 10px;
+  box-sizing: border-box;
 }
 
 .ranking-title {
@@ -127,13 +149,17 @@ h1 {
 }
 
 #reset-button {
-  grid-column: 1;
+  position: absolute;
+  left: 30px;
+  bottom: 30px;
+  grid-column: unset;
   padding: 10px;
   background-color: #444;
   color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
+  z-index: 20;
 }
 
 #reset-button:hover {
@@ -217,6 +243,18 @@ h1 {
 
 .hidden {
   display: none !important;
+}
+
+#headline {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  font-size: 2.6em;
+  font-weight: bold;
+  color: #fff;
+  letter-spacing: 2px;
+  justify-content: flex-start;
+  padding-left: 10px;
 }
 
 .logo {

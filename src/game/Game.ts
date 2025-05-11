@@ -144,7 +144,9 @@ export class Game {
           // Verstecke Ampel und Countdown
           if (trafficLight) trafficLight.classList.add('hidden');
           if (countdown) countdown.classList.add('hidden');
-          
+          // Zeige Timer und Rundenzähler im Overlay
+          const uiCenter = document.getElementById('ui-center');
+          if (uiCenter) uiCenter.classList.remove('hidden');
           // Starte das eigentliche Spiel
           this.isGameRunning = true;
           this.isCountdownActive = false;
@@ -180,6 +182,9 @@ export class Game {
     
     // Setze UI zurück
     this.ui.resetUI();
+    // Blende Timer und Rundenzähler im Overlay aus
+    const uiCenter = document.getElementById('ui-center');
+    if (uiCenter) uiCenter.classList.add('hidden');
     
     // Zeige den Start-Button
     const startButton = document.getElementById('start-button');
