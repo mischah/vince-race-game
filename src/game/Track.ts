@@ -292,13 +292,14 @@ export class Track {
     // Die Ziellinie sollte senkrecht zur Fahrtrichtung verlaufen und
     // von der inneren bis zur äußeren Begrenzung gehen
     // Wir nehmen die rechte Gerade, also von innen nach außen auf der rechten Seite
+    const finishLineYOffset = 110; // Verschiebung nach unten
     this.finishLine = {
-      start: { x: innerRight + 2, y: centerY }, // +2 Pixel Korrektur nach rechts
-      end:   { x: outerRight - 2, y: centerY }  // -2 Pixel Korrektur nach links
+      start: { x: innerRight + 2, y: centerY + finishLineYOffset }, // +80 Pixel nach unten
+      end:   { x: outerRight - 2, y: centerY + finishLineYOffset }  // +80 Pixel nach unten
     };
 
     // Startpositionen der Autos: alle auf gleicher Y-Höhe, kurz unterhalb der Startlinie
-    const startY = centerY + 40; // 40 Pixel unterhalb der Startlinie
+    const startY = centerY + 40 + finishLineYOffset; // 40 Pixel unterhalb der neuen Startlinie
     const carSpacing = ((outerRight - innerRight) - 4) / 5;
     this.startPositions = [
       { x: innerRight + carSpacing, y: startY },
