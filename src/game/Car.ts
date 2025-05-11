@@ -28,6 +28,11 @@ export class Car {
   private aiTargetPoints: Position[] = [];
   private currentAiPointIndex = 0;
   private aiDifficulty = Math.random() * 0.2 + 0.7; // Zwischen 0.7 und 0.9 für Startvorteil Spieler
+  private aiSteerError = (Math.random() - 0.5) * 0.06; // Zufälliger Lenkfehler pro KI-Auto
+  private aiTargetOffset = {
+    x: (Math.random() - 0.5) * 20, // Offset von -10 bis +10 px
+    y: (Math.random() - 0.5) * 20
+  };
   
   constructor(ctx: CanvasRenderingContext2D, name: string, color: string, isPlayer: boolean) {
     this.ctx = ctx;
@@ -229,13 +234,22 @@ export class Car {
     if (game && typeof game.isRunning === 'function' && !game.isRunning()) return;
     
     // KI-Steuerung für die Autos
-    const currentTarget = this.aiTargetPoints[this.currentAiPointIndex];
+    let currentTarget = this.aiTargetPoints[this.currentAiPointIndex];
+    
+    // Füge Zufalls-Offset zum Zielpunkt hinzu
+    currentTarget = {
+      x: currentTarget.x + this.aiTargetOffset.x,
+      y: currentTarget.y + this.aiTargetOffset.y
+    };
     
     // Berechne Richtung zum Zielpunkt
     const dx = currentTarget.x - this.position.x;
     const dy = currentTarget.y - this.position.y;
     const distanceToTarget = Math.sqrt(dx * dx + dy * dy);
-    const targetAngle = Math.atan2(dx, -dy);
+    let targetAngle = Math.atan2(dx, -dy);
+    
+    // Füge Lenkfehler hinzu
+    targetAngle += this.aiSteerError;
     
     // Berechne Differenz zwischen aktuellem Winkel und Zielwinkel
     let angleDiff = targetAngle - this.angle;
@@ -264,6 +278,11 @@ export class Car {
     const switchDistance = 30; // Kleinere Distanz für präzisere Navigation
     if (distanceToTarget < switchDistance) {
       this.currentAiPointIndex = (this.currentAiPointIndex + 1) % this.aiTargetPoints.length;
+      this.aiTargetOffset = {
+        x: (Math.random() - 0.5) * 20,
+        y: (Math.random() - 0.5) * 20
+      };
+      this.aiSteerError = (Math.random() - 0.5) * 0.06;
     }
     
     // Kollisionsschutz: Wenn die KI-Autos zu langsam werden oder stecken bleiben
