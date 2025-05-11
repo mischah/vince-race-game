@@ -118,7 +118,7 @@ export class Car {
   public setStartPosition(position: Position): void {
     this.position = { ...position };
     this.speed = 0;
-    this.angle = 0; // Auto schaut nach oben
+    this.angle = 0; // Auto schaut nach oben (Standard für Start)
   }
 
   public accelerate(): void {

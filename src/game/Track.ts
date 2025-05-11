@@ -502,15 +502,16 @@ export class Track {
       Math.pow(carPos.x - projX, 2) + Math.pow(carPos.y - projY, 2)
     );
     
-    // Überprüfen der Bewegungsrichtung - Wir wollen, dass das Auto von oben nach unten fährt
+    // Überprüfen der Bewegungsrichtung - Wir wollen, dass das Auto von unten nach oben fährt (gegen den Uhrzeigersinn)
     // (Das Spiel nutzt ein Koordinatensystem, bei dem die y-Achse nach unten zunimmt)
-    const movingDown = car.getAngle() > 0 && car.getAngle() < Math.PI; 
+    // Erlaube angle nahe 0 oder nahe 2π (Auto fährt nach oben)
+    const movingUp = car.getAngle() <= Math.PI / 2 || car.getAngle() >= (3 * Math.PI) / 2;
     
     // Auto überquert die Ziellinie, wenn:
     // 1. Es nahe genug an der Linie ist
     // 2. Es auf der Linie ist (zwischen Start- und Endpunkt)
-    // 3. Es sich in der richtigen Richtung bewegt (von oben nach unten)
-    return isOnLine && distance < 10 && movingDown;
+    // 3. Es sich in der richtigen Richtung bewegt (von unten nach oben)
+    return isOnLine && distance < 10 && movingUp;
   }
 
   /**

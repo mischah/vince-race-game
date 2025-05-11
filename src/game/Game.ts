@@ -21,6 +21,8 @@ export class Game {
   private lastTime = 0;
   private animationFrameId: number | null = null;
   private lapCountingEnabled = false; // Flag, um zu verfolgen, ob die Rundenzählung aktiviert ist
+  private lastPlayerLapState = false;
+  private lastAiLapStates: boolean[] = [false, false];
 
   constructor() {
     this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -280,20 +282,21 @@ export class Game {
   }
 
   private checkLapProgress(): void {
-    // Überprüfe Rundenfortschritt nur, wenn die Rundenzählung aktiviert ist
     if (!this.lapCountingEnabled) return;
-    
-    // Überprüfe, ob der Spieler die Ziellinie überquert hat
-    if (this.track.checkFinishLineCrossing(this.playerCar)) {
+    // Spielerauto: Runde nur zählen, wenn Ziellinie von "außen nach innen" überquert wird
+    const playerCrossed = this.track.checkFinishLineCrossing(this.playerCar);
+    if (playerCrossed && !this.lastPlayerLapState) {
       this.playerCar.completeLap();
       this.ui.updateLapCounter(this.playerCar.getLapsCompleted());
     }
-    
-    // Überprüfe, ob die KI-Autos die Ziellinie überquert haben
-    this.aiCars.forEach(car => {
-      if (this.track.checkFinishLineCrossing(car)) {
+    this.lastPlayerLapState = playerCrossed;
+    // KI-Autos
+    this.aiCars.forEach((car, idx) => {
+      const crossed = this.track.checkFinishLineCrossing(car);
+      if (crossed && !this.lastAiLapStates[idx]) {
         car.completeLap();
       }
+      this.lastAiLapStates[idx] = crossed;
     });
   }
 
