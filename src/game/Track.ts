@@ -287,38 +287,37 @@ export class Track {
     
     // Speichere die Punkte für die Kollisionserkennung
     this.trackBoundaries = [outerPoints, innerPoints];
-    
-    // Setze die Startlinie (unten in der Mitte)
+
+    // Setze die Startlinie (rechte Seite, horizontal)
     // Die Ziellinie sollte senkrecht zur Fahrtrichtung verlaufen und
     // von der inneren bis zur äußeren Begrenzung gehen
+    // Wir nehmen die rechte Gerade, also von innen nach außen auf der rechten Seite
     this.finishLine = {
-      start: { x: centerX, y: innerBottom + 2 }, // +2 Pixel Korrektur nach unten
-      end: { x: centerX, y: outerBottom - 2 }    // -2 Pixel Korrektur nach oben
+      start: { x: innerRight + 2, y: centerY }, // +2 Pixel Korrektur nach rechts
+      end:   { x: outerRight - 2, y: centerY }  // -2 Pixel Korrektur nach links
     };
-    
-    // Startpositionen der Autos entlang der vertikalen Startlinie verteilen
-    // Die Y-Position ist unterschiedlich, die X-Position ist links vor der Startlinie
-    const lineLength = (outerBottom - innerBottom) - 4; // Länge der Startlinie minus Korrekturen
-    const carSpacing = lineLength / 5; // Größerer Abstand zwischen den Autos (von 4 auf 5)
-    const offsetX = 30; // Abstand vor der Startlinie (nach links) - von 15 auf 30 erhöht
-    
+
+    // Startpositionen der Autos: alle auf gleicher Y-Höhe, kurz unterhalb der Startlinie
+    const startY = centerY + 40; // 40 Pixel unterhalb der Startlinie
+    const carSpacing = ((outerRight - innerRight) - 4) / 5;
     this.startPositions = [
-      { x: centerX - offsetX, y: innerBottom + carSpacing }, // Spieler oben
-      { x: centerX - offsetX, y: innerBottom + carSpacing * 2.5 }, // KI 1 mitte (mehr Abstand)
-      { x: centerX - offsetX, y: innerBottom + carSpacing * 4 }  // KI 2 unten
+      { x: innerRight + carSpacing, y: startY },
+      { x: innerRight + carSpacing * 2.5, y: startY },
+      { x: innerRight + carSpacing * 4, y: startY }
     ];
-    
-    // Checkpoints für die Rundenerfassung
+
+    // Checkpoints für die Rundenerfassung (angepasst, damit sie sinnvoll bleiben)
     this.checkpoints = [
       // Oben (Mitte)
       {
         start: { x: centerX, y: outerTop },
         end: { x: centerX, y: innerTop }
       },
-      // Rechts (Mitte)
+      // Rechts (Mitte) - jetzt die Start-/Ziellinie, daher nicht mehr als Checkpoint nötig
+      // Stattdessen unten (Mitte)
       {
-        start: { x: outerRight, y: centerY },
-        end: { x: innerRight, y: centerY }
+        start: { x: centerX, y: outerBottom },
+        end: { x: centerX, y: innerBottom }
       },
       // Links (Mitte)
       {
@@ -379,28 +378,13 @@ export class Track {
       }
     };
     
-    // Startpunkt setzen - dort, wo die Autos tatsächlich starten
-    // Startposition ist auf der Mittellinie, gleiche Y-Position wie die Autos
-    const startY = outerBottom - middleTrackWidth;
-    this.aiPath.push({ x: centerX, y: startY });
-    
-    // Nach rechts bis zur Kurve
-    this.aiPath.push({ x: midRight - midCornerRadius, y: midBottom });
-    
-    // Untere rechte Kurve
-    arcPoints(
-      midRight - midCornerRadius, 
-      midBottom - midCornerRadius, 
-      midCornerRadius,
-      Math.PI/2, 
-      0, 
-      10
-    );
-    
-    // Rechte Seite nach oben
-    this.aiPath.push({ x: midRight, y: midBottom - midCornerRadius });
+    // Startpunkt setzen - jetzt auf der rechten Seite, gleiche X-Position wie die Autos
+    const startX = innerRight + (outerRight - innerRight) / 2;
+    this.aiPath.push({ x: startX, y: centerY });
+
+    // Nach oben bis zur Kurve
     this.aiPath.push({ x: midRight, y: midTop + midCornerRadius });
-    
+
     // Obere rechte Kurve
     arcPoints(
       midRight - midCornerRadius, 
@@ -410,11 +394,11 @@ export class Track {
       -Math.PI/2, 
       10
     );
-    
+
     // Obere Seite nach links
     this.aiPath.push({ x: midRight - midCornerRadius, y: midTop });
     this.aiPath.push({ x: midLeft + midCornerRadius, y: midTop });
-    
+
     // Obere linke Kurve
     arcPoints(
       midLeft + midCornerRadius, 
@@ -424,11 +408,11 @@ export class Track {
       -Math.PI, 
       10
     );
-    
+
     // Linke Seite nach unten
     this.aiPath.push({ x: midLeft, y: midTop + midCornerRadius });
     this.aiPath.push({ x: midLeft, y: midBottom - midCornerRadius });
-    
+
     // Untere linke Kurve
     arcPoints(
       midLeft + midCornerRadius, 
@@ -438,11 +422,24 @@ export class Track {
       -Math.PI*3/2, 
       10
     );
-    
-    // Zurück zur Startlinie
+
+    // Untere Seite nach rechts
     this.aiPath.push({ x: midLeft + midCornerRadius, y: midBottom });
-    // Zurück zum Anfangspunkt mit korrekter Y-Position
-    this.aiPath.push({ x: centerX, y: startY });
+    this.aiPath.push({ x: midRight - midCornerRadius, y: midBottom });
+
+    // Untere rechte Kurve
+    arcPoints(
+      midRight - midCornerRadius, 
+      midBottom - midCornerRadius, 
+      midCornerRadius,
+      Math.PI/2, 
+      0, 
+      10
+    );
+
+    // Rechte Seite nach oben zurück zum Start
+    this.aiPath.push({ x: midRight, y: midBottom - midCornerRadius });
+    this.aiPath.push({ x: startX, y: centerY });
   }
 
   public getAiPath(): Position[] {
