@@ -149,21 +149,23 @@ h1 {
 }
 
 #reset-button {
-  position: absolute;
-  left: 30px;
-  bottom: 30px;
-  grid-column: unset;
-  padding: 10px;
-  background-color: #444;
-  color: white;
-  border: none;
+  background-color: #e0e0e0;
+  color: #222;
+  font-size: 1em;
+  padding: 8px 18px;
   border-radius: 5px;
-  cursor: pointer;
-  z-index: 20;
+  border: 1px solid #bbb;
+  box-shadow: 0 1px 4px #0002;
+  margin: 14px auto 0 auto;
+  min-width: 70px;
+}
+#reset-button:hover {
+  background-color: #cccccc;
+  color: #111;
 }
 
-#reset-button:hover {
-  background-color: #555;
+#reset-button.hidden {
+  display: none !important;
 }
 
 #game-area {
@@ -183,15 +185,25 @@ h1 {
 
 #game-overlay {
   position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: center; /* zentriert alle Kinder vertikal */
+  pointer-events: none;
+}
+#game-overlay > * {
+  pointer-events: auto;
 }
 
 #start-button {
+  position: relative;
+  z-index: 20;
+  margin-bottom: 20px;
+  margin-top: 0;
   padding: 15px 30px;
   font-size: 24px;
   background-color: #4CAF50;
@@ -199,9 +211,9 @@ h1 {
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  margin-bottom: 20px;
+  display: block;
+  pointer-events: auto;
 }
-
 #start-button:hover {
   background-color: #45a049;
 }
@@ -308,4 +320,100 @@ button:focus-visible {
   button {
     background-color: #f9f9f9;
   }
+}
+
+@media (max-width: 700px) {
+  #game-area {
+    width: 100vw;
+    height: 80vh;
+    max-width: 100vw;
+    max-height: 80vh;
+  }
+  #game-canvas {
+    width: 100vw !important;
+    height: 80vh !important;
+    max-width: 100vw;
+    max-height: 80vh;
+  }
+  #ui-top {
+    width: 100vw;
+    flex-direction: column;
+    align-items: stretch;
+    border-radius: 0 0 10px 10px;
+    margin-bottom: 0;
+    padding: 8px 0 0 0;
+  }
+  #headline {
+    font-size: 1.5em;
+    padding-left: 8px;
+    justify-content: center;
+  }
+  #ranking {
+    width: 100%;
+    border-radius: 0 0 10px 10px;
+    margin-top: 8px;
+  }
+  #reset-button {
+    left: 10px;
+    bottom: 10px;
+    padding: 12px 20px;
+    font-size: 1.2em;
+  }
+  #ui-center {
+    margin-bottom: 10px;
+  }
+  #timer-container {
+    width: 80vw;
+    max-width: 200px;
+  }
+  #timer {
+    font-size: 2em;
+  }
+  #lap-counter {
+    font-size: 1.1em;
+  }
+}
+
+/* Touch-Steuerung Buttons */
+#touch-controls {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  width: 100%;
+  display: none;
+  justify-content: space-between;
+  pointer-events: none;
+  z-index: 30;
+  padding: 0 0 18px 0;
+}
+
+@media (max-width: 700px), (pointer: coarse) {
+  #touch-controls {
+    display: flex;
+  }
+}
+
+#btn-left, #btn-right {
+  pointer-events: auto;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: #333a;
+  color: #fff;
+  font-size: 2em;
+  border: 2px solid #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 8px #0005;
+  user-select: none;
+  touch-action: manipulation;
+  margin: 0 18px;
+}
+#btn-left { justify-content: flex-start; }
+#btn-right { justify-content: flex-end; }
+#btn-left:active, #btn-right:active {
+  background: #4caf50;
+  color: #fff;
 }

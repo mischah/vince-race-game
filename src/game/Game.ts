@@ -147,6 +147,9 @@ export class Game {
           // Zeige Timer und Rundenzähler im Overlay
           const uiCenter = document.getElementById('ui-center');
           if (uiCenter) uiCenter.classList.remove('hidden');
+          // Zeige Reset-Button
+          const resetBtn = document.getElementById('reset-button');
+          if (resetBtn) resetBtn.classList.remove('hidden');
           // Starte das eigentliche Spiel
           this.isGameRunning = true;
           this.isCountdownActive = false;
@@ -185,6 +188,9 @@ export class Game {
     // Blende Timer und Rundenzähler im Overlay aus
     const uiCenter = document.getElementById('ui-center');
     if (uiCenter) uiCenter.classList.add('hidden');
+    // Blende Reset-Button aus
+    const resetBtn = document.getElementById('reset-button');
+    if (resetBtn) resetBtn.classList.add('hidden');
     
     // Zeige den Start-Button
     const startButton = document.getElementById('start-button');

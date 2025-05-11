@@ -21,7 +21,6 @@
           </div>
         </div>
         <div id="game-area">
-          <button id="reset-button">Reset</button>
           <canvas id="game-canvas"></canvas>
           <div id="game-overlay">
             <div id="ui-center" class="hidden">
@@ -29,6 +28,7 @@
                 <div id="timer">0:00</div>
               </div>
               <div id="lap-counter">Runde: 0/3</div>
+              <button id="reset-button" class="hidden">Reset</button>
             </div>
             <button id="start-button">Start</button>
             <div id="traffic-light">
@@ -37,6 +37,10 @@
               <div class="light green"></div>
             </div>
             <div id="countdown">3</div>
+            <div id="touch-controls">
+              <button class="touch-btn" id="btn-left">&#8592;</button>
+              <button class="touch-btn" id="btn-right">&#8594;</button>
+            </div>
           </div>
         </div>
       </div>
