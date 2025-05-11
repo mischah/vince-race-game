@@ -27,7 +27,7 @@ export class Car {
   // KI-Parameter
   private aiTargetPoints: Position[] = [];
   private currentAiPointIndex = 0;
-  private aiDifficulty = Math.random() * 0.3 + 0.7; // Zwischen 0.7 und 1.0
+  private aiDifficulty = Math.random() * 0.2 + 0.7; // Zwischen 0.7 und 0.9 für Startvorteil Spieler
   
   constructor(ctx: CanvasRenderingContext2D, name: string, color: string, isPlayer: boolean) {
     this.ctx = ctx;
@@ -254,8 +254,8 @@ export class Car {
       this.resetSteering();
     }
     
-    // KI-Beschleunigungslogik - sanft wie beim Spielerauto
-    this.acceleration = 0.1;
+    // KI-Beschleunigungslogik - sanfter als Spielerauto
+    this.acceleration = 0.07;
     if (this.speed < this.maxSpeed * this.aiDifficulty) {
       this.speed = Math.min(this.maxSpeed * this.aiDifficulty, this.speed + this.acceleration);
     }
