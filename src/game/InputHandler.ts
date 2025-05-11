@@ -39,23 +39,14 @@ export class InputHandler {
 
   private updateControls(): void {
     const playerCar = this.game.getPlayerCar();
-    
-    // Steuerung des Spielerautos basierend auf den gedrückten Tasten
-    if (this.keys['ArrowUp']) {
-      playerCar.accelerate();
-    }
-    
-    if (this.keys['ArrowDown']) {
-      playerCar.decelerate();
-    }
-    
+    // Nur noch Lenkung für das Spielerauto
     if (this.keys['ArrowLeft']) {
       playerCar.turnLeft();
     }
-    
     if (this.keys['ArrowRight']) {
       playerCar.turnRight();
     }
+    // KI-Autos werden wie gehabt behandelt (falls nötig)
   }
 
   public activateControls(): void {

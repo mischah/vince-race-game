@@ -515,6 +515,54 @@ export class Track {
     return isOnLine && distance < 10 && movingDown;
   }
 
+  /**
+   * Gibt die Wandnormale und den Typ ('outer' | 'inner') für eine gegebene Position zurück.
+   * Die Normale zeigt IMMER von der Wand in Richtung Strecke.
+   */
+  public getWallNormalAndType(position: Position): { normal: Position, type: 'outer' | 'inner' } | null {
+    if (!this.trackBoundaries.length) return null;
+    const [outer, inner] = this.trackBoundaries;
+    // Finde den nächsten Punkt auf der äußeren und inneren Begrenzung
+    let minDistOuter = Infinity;
+    let closestOuter: Position | null = null;
+    for (const p of outer) {
+      const dx = position.x - p.x;
+      const dy = position.y - p.y;
+      const dist = dx*dx + dy*dy;
+      if (dist < minDistOuter) {
+        minDistOuter = dist;
+        closestOuter = p;
+      }
+    }
+    let minDistInner = Infinity;
+    let closestInner: Position | null = null;
+    for (const p of inner) {
+      const dx = position.x - p.x;
+      const dy = position.y - p.y;
+      const dist = dx*dx + dy*dy;
+      if (dist < minDistInner) {
+        minDistInner = dist;
+        closestInner = p;
+      }
+    }
+    // Entscheide, ob näher an außen oder innen
+    if (minDistOuter < minDistInner) {
+      // Außenwand: Normale zeigt nach innen (zur Streckenmitte)
+      const center = { x: this.ctx.canvas.width/2, y: this.ctx.canvas.height/2 };
+      const nx = center.x - (closestOuter!.x);
+      const ny = center.y - (closestOuter!.y);
+      const len = Math.sqrt(nx*nx + ny*ny) || 1;
+      return { normal: { x: nx/len, y: ny/len }, type: 'outer' };
+    } else {
+      // Innenwand: Normale zeigt nach außen (weg von der Streckenmitte)
+      const center = { x: this.ctx.canvas.width/2, y: this.ctx.canvas.height/2 };
+      const nx = (closestInner!.x) - center.x;
+      const ny = (closestInner!.y) - center.y;
+      const len = Math.sqrt(nx*nx + ny*ny) || 1;
+      return { normal: { x: nx/len, y: ny/len }, type: 'inner' };
+    }
+  }
+
   private isPointInTrack(point: Position): boolean {
     // Hier nutzen wir die Punkt-in-Polygon-Prüfung mit unseren berechneten Randpunkten
     const [outerBoundary, innerBoundary] = this.trackBoundaries;

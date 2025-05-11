@@ -68,6 +68,11 @@ export class Car {
 
   public update(collision: Collision): void {
     if (this.isFinished) return;
+
+    // Automatische Beschleunigung für Spielerauto
+    if (this.isPlayer) {
+      this.speed = Math.min(this.maxSpeed, this.speed + this.acceleration);
+    }
     
     // Bewege das Auto entsprechend seiner Geschwindigkeit und Richtung
     const moveX = Math.sin(this.angle) * this.speed;
@@ -83,28 +88,19 @@ export class Car {
       this.position = newPosition;
       this.distanceTraveled += this.speed;
     } else {
-      // Verbesserte Kollisionsbehandlung
-      this.speed *= 0.3; // Deutlichere Geschwindigkeitsreduktion
-      
-      // Versuche, das Auto etwas zurückzusetzen, um es aus der Kollision zu befreien
-      if (Math.abs(this.speed) > 0.5) {
-        // Bewege das Auto in die entgegengesetzte Richtung
-        const backoffX = -Math.sin(this.angle) * (this.speed * 0.5);
-        const backoffY = Math.cos(this.angle) * (this.speed * 0.5);
-        
-        const escapePosition = {
-          x: this.position.x + backoffX,
-          y: this.position.y + backoffY
-        };
-        
-        // Verwende die neue Position nur, wenn sie keine Kollision verursacht
-        if (!collision.checkTrackCollision(escapePosition, this.size, this.angle)) {
-          this.position = escapePosition;
-        }
-        
-        // Füge etwas zufällige Rotation hinzu, um aus schwierigen Positionen zu entkommen
-        this.angle += (Math.random() * 0.2 - 0.1);
+      // Arcade-Leitplanken-Logik:
+      // 1. Geschwindigkeit drosseln, aber nicht stoppen
+      this.speed = Math.max(this.speed * 0.7, 1.2); // sanft abbremsen, aber nicht auf 0
+      // 2. Position leicht von der Wand wegschieben
+      const track = (collision as any).track;
+      const wallInfo = track.getWallNormalAndType(this.position);
+      if (wallInfo) {
+        const { normal } = wallInfo;
+        this.position.x += normal.x * 2.5; // sanft wegdrücken
+        this.position.y += normal.y * 2.5;
       }
+      // 3. KEINE Änderung des Winkels durch die Wand!
+      // 4. Steuerung bleibt immer aktiv
     }
     
     // Wende Reibung an (Auto wird langsamer, wenn keine Taste gedrückt wird)
@@ -126,32 +122,36 @@ export class Car {
   }
 
   public accelerate(): void {
+    // Automatische Beschleunigung, daher leer für Spielerauto
     if (this.isFinished) return;
-    this.speed = Math.min(this.maxSpeed, this.speed + this.acceleration);
+    if (!this.isPlayer) {
+      this.speed = Math.min(this.maxSpeed, this.speed + this.acceleration);
+    }
   }
 
   public decelerate(): void {
+    // Deaktiviert für Spielerauto
     if (this.isFinished) return;
-    this.speed = Math.max(-this.maxSpeed / 2, this.speed - this.deceleration);
+    if (!this.isPlayer) {
+      this.speed = Math.max(-this.maxSpeed / 2, this.speed - this.deceleration);
+    }
   }
 
   public turnLeft(): void {
     if (this.isFinished) return;
-    // Berechne Ziel-Rotation mit Easing für sanfte Steuerung
-    const targetRotation = -this.rotationSpeed * this.speed;
-    this.currentRotation += (targetRotation - this.currentRotation) * this.rotationEasing;
+    // Arcade-Lenkung: Feste, aber subtilere Drehung
+    this.currentRotation = -0.035; // Weniger als vorher (z.B. 0.035 rad pro Frame)
   }
 
   public turnRight(): void {
     if (this.isFinished) return;
-    // Berechne Ziel-Rotation mit Easing für sanfte Steuerung
-    const targetRotation = this.rotationSpeed * this.speed;
-    this.currentRotation += (targetRotation - this.currentRotation) * this.rotationEasing;
+    // Arcade-Lenkung: Feste, aber subtilere Drehung
+    this.currentRotation = 0.035;
   }
 
   public resetSteering(): void {
-    // Setze die Rotation langsam zurück auf 0
-    this.currentRotation *= 0.9;
+    // Arcade-Lenkung: Sofortiges Stoppen der Drehung
+    this.currentRotation = 0;
   }
 
   public completeLap(): void {
