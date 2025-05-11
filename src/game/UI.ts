@@ -10,6 +10,7 @@ export class UI {
   private positionConfidence: Map<string, number> = new Map(); // Speichert, wie stabil die Position jedes Autos ist
   private lastUpdateTime = 0; // Verhindert zu häufige Updates
   private updateInterval = 100; // Minimaler Abstand zwischen Updates in ms
+  private rankingFrozen = false; // Flag zum Einfrieren der Rangliste
   
   private gameStartTime: number = 0;
   private timerIntervalId: number | null = null;
@@ -85,7 +86,34 @@ export class UI {
     this.lapCounterElement.textContent = `Runde: ${lap}/3`;
   }
 
+  public freezeRanking(): void {
+    this.rankingFrozen = true;
+  }
+
   public updateRanking(cars: Car[]): void {
+    // Wenn eine feste Einlaufreihenfolge existiert, zeige diese an
+    const game = (window as any).gameInstance;
+    if (game && typeof game.getFinishOrder === 'function') {
+      const finishOrder: string[] = game.getFinishOrder();
+      if (finishOrder && finishOrder.length > 0) {
+        // Sortiere die Autos nach finishOrder, Rest nach aktueller Logik
+        const finishedCars = finishOrder.map(name => cars.find(car => car.getName() === name)).filter(Boolean) as Car[];
+        const unfinishedCars = cars.filter(car => !finishOrder.includes(car.getName()));
+        // Unfertige Autos nach aktueller Logik sortieren
+        const byLaps = this.groupByLaps(unfinishedCars);
+        const finalSorted: Car[] = [...finishedCars];
+        Object.keys(byLaps).sort((a, b) => parseInt(b) - parseInt(a)).forEach(lap => {
+          const carsInLap = byLaps[lap];
+          const sortedByDistance = this.sortByDistanceWithHysteresis(carsInLap);
+          finalSorted.push(...sortedByDistance);
+        });
+        this.updateRankingDOM(finalSorted);
+        this.currentRanking = finalSorted.map(car => car.getName());
+        return;
+      }
+    }
+    if (this.rankingFrozen) return;
+
     // Throttling - Verhindere zu häufige Updates
     const now = Date.now();
     if (now - this.lastUpdateTime < this.updateInterval) {
@@ -329,5 +357,7 @@ export class UI {
     
     // Setze den Zeitpunkt der letzten Aktualisierung zurück
     this.lastUpdateTime = 0;
+
+    this.rankingFrozen = false;
   }
 }

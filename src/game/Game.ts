@@ -23,6 +23,7 @@ export class Game {
   private lapCountingEnabled = false; // Flag, um zu verfolgen, ob die Rundenzählung aktiviert ist
   private lastPlayerLapState = false;
   private lastAiLapStates: boolean[] = [false, false];
+  private finishOrder: string[] = [];
 
   constructor() {
     this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
@@ -175,6 +176,7 @@ export class Game {
     this.isGameStarted = false;
     this.isCountdownActive = false;
     this.lapCountingEnabled = false;
+    this.finishOrder = [];
     
     // Setze UI zurück
     this.ui.resetUI();
@@ -229,9 +231,14 @@ export class Game {
     return this.isGameRunning;
   }
 
+  public getFinishOrder(): string[] {
+    return this.finishOrder;
+  }
+
   public endGame(): void {
     this.isGameRunning = false;
     this.ui.stopTimer();
+    this.ui.freezeRanking();
   }
 
   private gameLoop(timestamp: number): void {
@@ -287,6 +294,9 @@ export class Game {
     const playerCrossed = this.track.checkFinishLineCrossing(this.playerCar);
     if (playerCrossed && !this.lastPlayerLapState) {
       this.playerCar.completeLap();
+      if (this.playerCar.getLapsCompleted() === 3 && !this.finishOrder.includes(this.playerCar.getName())) {
+        this.finishOrder.push(this.playerCar.getName());
+      }
       this.ui.updateLapCounter(this.playerCar.getLapsCompleted());
     }
     this.lastPlayerLapState = playerCrossed;
@@ -295,6 +305,9 @@ export class Game {
       const crossed = this.track.checkFinishLineCrossing(car);
       if (crossed && !this.lastAiLapStates[idx]) {
         car.completeLap();
+        if (car.getLapsCompleted() === 3 && !this.finishOrder.includes(car.getName())) {
+          this.finishOrder.push(car.getName());
+        }
       }
       this.lastAiLapStates[idx] = crossed;
     });
