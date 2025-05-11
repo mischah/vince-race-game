@@ -309,4 +309,11 @@ export class Car {
     // Reduziere die Geschwindigkeit nach einer Kollision
     this.speed *= factor;
   }
+
+  /**
+   * Gibt den Fortschritt des Autos auf der Strecke zurück (Index auf aiPath)
+   */
+  public getTrackProgress(track: any): number {
+    return track.getProgressOnTrack(this.getPosition());
+  }
 }

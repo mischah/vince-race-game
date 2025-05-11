@@ -166,38 +166,19 @@ export class UI {
   }
   
   private sortByDistanceWithHysteresis(cars: Car[]): Car[] {
-    // Wenn weniger als 2 Autos, keine Sortierung nötig
     if (cars.length <= 1) return cars;
-    
-    // Sortiere zunächst nach Distanz
+    // Sortiere nach Streckenfortschritt (aiPath), nicht nach distanceTraveled
+    const game = (window as any).gameInstance;
+    const track = game && typeof game.getTrack === 'function' ? game.getTrack() : null;
     return [...cars].sort((a, b) => {
-      const distanceA = a.getDistanceTraveled();
-      const distanceB = b.getDistanceTraveled();
-      const nameA = a.getName();
-      const nameB = b.getName();
-      
-      // Relative Position in der aktuellen Rangfolge
-      const indexA = this.currentRanking.indexOf(nameA);
-      const indexB = this.currentRanking.indexOf(nameB);
-      const areConsecutive = Math.abs(indexA - indexB) === 1;
-      
-      // Distanzunterschied
-      const distanceDiff = distanceB - distanceA;
-      const THRESHOLD = 5; // Reduziert von 10 auf 5 für empfindlichere Erkennung
-      
-      if (areConsecutive) {
-        // Für benachbarte Positionen prüfen wir eine Umkehr genauer
-        if (indexA < indexB) {
-          // A vor B in der aktuellen Liste (A soll überholt werden)
-          return (distanceDiff > THRESHOLD) ? 1 : -1;
-        } else {
-          // B vor A in der aktuellen Liste (B soll überholt werden)
-          return (distanceDiff < -THRESHOLD) ? -1 : 1;
-        }
+      if (track) {
+        const progressA = a.getTrackProgress(track);
+        const progressB = b.getTrackProgress(track);
+        // Höherer Fortschritt = weiter vorne
+        if (progressB !== progressA) return progressB - progressA;
       }
-      
-      // Für nicht-benachbarte Positionen standard-Vergleich
-      return distanceB - distanceA;
+      // Fallback: nach distanceTraveled
+      return b.getDistanceTraveled() - a.getDistanceTraveled();
     });
   }
   

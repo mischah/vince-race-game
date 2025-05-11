@@ -562,6 +562,27 @@ export class Track {
     }
   }
 
+  /**
+   * Gibt den Fortschritt (Index) auf dem aiPath für eine gegebene Position zurück.
+   * Je niedriger der Wert, desto weiter "hinten" auf der Strecke.
+   */
+  public getProgressOnTrack(pos: Position): number {
+    if (!this.aiPath.length) return 0;
+    let minDist = Infinity;
+    let minIdx = 0;
+    for (let i = 0; i < this.aiPath.length; i++) {
+      const dx = pos.x - this.aiPath[i].x;
+      const dy = pos.y - this.aiPath[i].y;
+      const dist = dx * dx + dy * dy;
+      if (dist < minDist) {
+        minDist = dist;
+        minIdx = i;
+      }
+    }
+    // Optional: als Prozentwert zurückgeben: minIdx / aiPath.length
+    return minIdx;
+  }
+
   private isPointInTrack(point: Position): boolean {
     // Hier nutzen wir die Punkt-in-Polygon-Prüfung mit unseren berechneten Randpunkten
     const [outerBoundary, innerBoundary] = this.trackBoundaries;
