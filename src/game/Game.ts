@@ -61,9 +61,9 @@ export class Game {
     this.track.loadTrack();
     
     // Platziere die Autos schon vor dem Start-Button-Klick an der Startlinie
-    this.playerCar.setStartPosition(this.track.getStartPosition(0));
-    this.aiCars[0].setStartPosition(this.track.getStartPosition(1));
-    this.aiCars[1].setStartPosition(this.track.getStartPosition(2));
+    this.aiCars[0].setStartPosition(this.track.getStartPosition(0)); // links (schwarz)
+    this.playerCar.setStartPosition(this.track.getStartPosition(1)); // mitte (rot)
+    this.aiCars[1].setStartPosition(this.track.getStartPosition(2)); // rechts (orange)
     
     // Start-Button-Event-Listener
     const startButton = document.getElementById('start-button');
@@ -89,8 +89,8 @@ export class Game {
     this.lapCountingEnabled = false; // Deaktiviere die Rundenzählung zu Beginn
     
     // Platziere Autos direkt an der Startlinie, noch bevor der Countdown beginnt
-    this.playerCar.setStartPosition(this.track.getStartPosition(0));
-    this.aiCars[0].setStartPosition(this.track.getStartPosition(1));
+    this.aiCars[0].setStartPosition(this.track.getStartPosition(0));
+    this.playerCar.setStartPosition(this.track.getStartPosition(1));
     this.aiCars[1].setStartPosition(this.track.getStartPosition(2));
     
     // Setze die KI-Wegpunkte für die AI-Autos schon jetzt
@@ -204,8 +204,8 @@ export class Game {
     this.aiCars.forEach(car => car.reset());
     
     // Platziere die Autos an der Startlinie nach dem Reset
-    this.playerCar.setStartPosition(this.track.getStartPosition(0));
-    this.aiCars[0].setStartPosition(this.track.getStartPosition(1));
+    this.aiCars[0].setStartPosition(this.track.getStartPosition(0));
+    this.playerCar.setStartPosition(this.track.getStartPosition(1));
     this.aiCars[1].setStartPosition(this.track.getStartPosition(2));
     
     // Deaktiviere Input-Handler

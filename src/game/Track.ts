@@ -298,13 +298,13 @@ export class Track {
       end:   { x: outerRight - 2, y: centerY + finishLineYOffset }  // +80 Pixel nach unten
     };
 
-    // Startpositionen der Autos: alle auf gleicher Y-Höhe, kurz unterhalb der Startlinie
+    // Startpositionen der Autos: Spielerauto in die Mitte
     const startY = centerY + 40 + finishLineYOffset; // 40 Pixel unterhalb der neuen Startlinie
     const carSpacing = ((outerRight - innerRight) - 4) / 5;
     this.startPositions = [
-      { x: innerRight + carSpacing, y: startY },
-      { x: innerRight + carSpacing * 2.5, y: startY },
-      { x: innerRight + carSpacing * 4, y: startY }
+      { x: innerRight + carSpacing, y: startY },      // links (KI)
+      { x: innerRight + carSpacing * 2.5, y: startY }, // mitte (Spieler)
+      { x: innerRight + carSpacing * 4, y: startY }   // rechts (KI)
     ];
 
     // Checkpoints für die Rundenerfassung (angepasst, damit sie sinnvoll bleiben)
