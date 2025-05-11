@@ -224,6 +224,9 @@ export class Car {
 
   public updateAI(): void {
     if (this.isPlayer || this.isFinished || this.aiTargetPoints.length === 0) return;
+    // Starte erst, wenn das Rennen läuft
+    const game = (window as any).gameInstance;
+    if (game && typeof game.isRunning === 'function' && !game.isRunning()) return;
     
     // KI-Steuerung für die Autos
     const currentTarget = this.aiTargetPoints[this.currentAiPointIndex];
@@ -251,16 +254,10 @@ export class Car {
       this.resetSteering();
     }
     
-    // KI-Beschleunigungslogik - immer beschleunigen, aber mit Anpassungen
-    if (Math.abs(angleDiff) < 0.5) { // Gerade Strecke oder leichte Kurve
-      this.acceleration = 0.1; // Volle Beschleunigung
+    // KI-Beschleunigungslogik - sanft wie beim Spielerauto
+    this.acceleration = 0.1;
+    if (this.speed < this.maxSpeed * this.aiDifficulty) {
       this.speed = Math.min(this.maxSpeed * this.aiDifficulty, this.speed + this.acceleration);
-    } else if (Math.abs(angleDiff) < 1.0) { // Mittlere Kurve
-      // In mittleren Kurven etwas langsamer
-      this.speed = Math.min(this.maxSpeed * this.aiDifficulty * 0.7, this.speed + this.acceleration * 0.7);
-    } else { // Scharfe Kurve
-      // In scharfen Kurven deutlich bremsen
-      this.speed = Math.min(this.maxSpeed * this.aiDifficulty * 0.4, this.speed + this.acceleration * 0.4);
     }
     
     // Wechsle zum nächsten Punkt, wenn wir nahe genug sind - anpassbare Distanz
