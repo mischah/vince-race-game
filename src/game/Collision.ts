@@ -56,8 +56,8 @@ export class Collision {
     const ny = dy / length;
     
     // Verschiebe die Autos auseinander basierend auf der Kollisionsrichtung
-    // Erhöhe die Separationsdistanz für eine stärkere Trennung
-    const separation = 5.0; // Erhöht von 2.0 auf 5.0 für stärkere Trennung
+    // Weichere Kollision: geringere Separationsdistanz
+    const separation = 2.0; // Weicher: von 5.0 auf 2.0 reduziert
     
     // Berechne neue Positionen für beide Autos
     const car1NewPos: Position = {
@@ -111,8 +111,8 @@ export class Collision {
     }
     
     // Reduziere die Geschwindigkeit beider Autos nach einer Kollision
-    // Erhöhter Geschwindigkeitsreduktionsfaktor für stärkere Abbremsung
-    car1.reduceSpeedAfterCollision(0.3); // Von 0.5 auf 0.3 geändert für stärkere Abbremsung
-    car2.reduceSpeedAfterCollision(0.3);
+    // Weichere Kollision: weniger starke Abbremsung
+    car1.reduceSpeedAfterCollision(0.7); // Von 0.3 auf 0.7 für weicheren Effekt
+    car2.reduceSpeedAfterCollision(0.7);
   }
 }
