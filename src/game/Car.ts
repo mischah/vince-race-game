@@ -1,5 +1,6 @@
 import type { Collision } from './Collision';
 import type { Position, Size } from './types';
+import { DEBUG } from '../config';
 
 export class Car {
   private ctx: CanvasRenderingContext2D;
@@ -94,14 +95,18 @@ export class Car {
       // Arcade-Leitplanken-Logik:
       // 1. Geschwindigkeit drosseln, aber nicht stoppen
       this.speed = Math.max(this.speed * 0.7, 1.2); // sanft abbremsen, aber nicht auf 0
-      // 2. Position leicht von der Wand wegschieben
+      // 2. Position kräftig(er) von der Wand wegschieben
       if (typeof (collision as any).getWallNormalAndType === 'function') {
         const wallInfo = (collision as any).getWallNormalAndType(this.position);
         if (wallInfo) {
           const { normal } = wallInfo;
-          this.position.x += normal.x * 2.5; // sanft wegdrücken
-          this.position.y += normal.y * 2.5;
+          this.position.x += normal.x * 10; // kräftiger Impuls
+          this.position.y += normal.y * 10;
         }
+      }
+      // 2b. Geschwindigkeit nach Wandkontakt auf höheren Mindestwert setzen
+      if (this.speed < 2.5) {
+        this.speed = 2.5;
       }
       // 3. KEINE Änderung des Winkels durch die Wand!
       // 4. Steuerung bleibt immer aktiv
@@ -297,21 +302,23 @@ export class Car {
     }
     
     // DEBUG: Zeichne den aktuellen Zielpunkt
-    this.ctx.save();
-    this.ctx.fillStyle = 'blue';
-    this.ctx.beginPath();
-    this.ctx.arc(currentTarget.x, currentTarget.y, 5, 0, Math.PI * 2);
-    this.ctx.fill();
-    
-    // Zeichne eine Linie vom Auto zum Zielpunkt
-    this.ctx.strokeStyle = 'rgba(0, 0, 255, 0.3)';
-    this.ctx.lineWidth = 1;
-    this.ctx.beginPath();
-    this.ctx.moveTo(this.position.x, this.position.y);
-    this.ctx.lineTo(currentTarget.x, currentTarget.y);
-    this.ctx.stroke();
-    
-    this.ctx.restore();
+    if (DEBUG) {
+      this.ctx.save();
+      this.ctx.fillStyle = 'blue';
+      this.ctx.beginPath();
+      this.ctx.arc(currentTarget.x, currentTarget.y, 5, 0, Math.PI * 2);
+      this.ctx.fill();
+      
+      // Zeichne eine Linie vom Auto zum Zielpunkt
+      this.ctx.strokeStyle = 'rgba(0, 0, 255, 0.3)';
+      this.ctx.lineWidth = 1;
+      this.ctx.beginPath();
+      this.ctx.moveTo(this.position.x, this.position.y);
+      this.ctx.lineTo(currentTarget.x, currentTarget.y);
+      this.ctx.stroke();
+      
+      this.ctx.restore();
+    }
   }
 
   public setPositionAfterCollision(newPosition: Position): void {
