@@ -2,10 +2,8 @@ import type { Position, Size, CarInterface } from './types';
 
 export class Track {
   private ctx: CanvasRenderingContext2D;
-  private trackPath: Path2D;
   private startPositions: Position[] = [];
   private finishLine: { start: Position, end: Position };
-  private checkpoints: { start: Position, end: Position }[] = [];
   private trackBoundaries: Position[][] = [];
   
   // Spur-Wegpunkte für die KI
@@ -13,7 +11,6 @@ export class Track {
   
   constructor(ctx: CanvasRenderingContext2D) {
     this.ctx = ctx;
-    this.trackPath = new Path2D();
     
     // Standard-Werte initialisieren, werden später überschrieben
     this.finishLine = {
@@ -169,16 +166,11 @@ export class Track {
     const rectHeight = canvasHeight * 0.8; // Von 0.7 auf 0.8 erhöht
     const trackWidth = Math.min(rectWidth, rectHeight) * 0.15; // Breite der Strecke zurück auf 0.15 gesetzt
     
-    // Berechne die Ecken des äußeren und inneren Rechtecks
+    // Berechne die Ecken des äußeren Rechtecks
     const outerLeft = centerX - rectWidth / 2;
     const outerRight = centerX + rectWidth / 2;
     const outerTop = centerY - rectHeight / 2;
     const outerBottom = centerY + rectHeight / 2;
-    
-    const innerLeft = outerLeft + trackWidth;
-    const innerRight = outerRight - trackWidth;
-    const innerTop = outerTop + trackWidth;
-    const innerBottom = outerBottom - trackWidth;
     
     // Radius für die abgerundeten Ecken (220% der Streckenbreite)
     const outerCornerRadius = trackWidth * 2.2; // 220% der Streckenbreite
@@ -187,7 +179,6 @@ export class Track {
     // Generiere Punkte für die Kollisionserkennung
     const outerPoints: Position[] = [];
     const innerPoints: Position[] = [];
-    const numPoints = 50; // Anzahl der Punkte für die Kollisionsberechnung
     
     // Hilfsfunktion für die Interpolation von Punkten auf einem Kreisbogen
     const arcPoints = (
@@ -247,43 +238,43 @@ export class Track {
     // Innerer Rand (in umgekehrter Reihenfolge)
     // Obere rechte Ecke (innerer Rand)
     arcPoints(
-      innerRight - innerCornerRadius, innerTop + innerCornerRadius, innerCornerRadius,
+      outerRight - trackWidth - innerCornerRadius, outerTop + trackWidth + innerCornerRadius, innerCornerRadius,
       -Math.PI/2, 0, 10, innerPoints
     );
     
     // Rechte Seite (innerer Rand)
-    innerPoints.push({ x: innerRight, y: innerTop + innerCornerRadius });
-    innerPoints.push({ x: innerRight, y: innerBottom - innerCornerRadius });
+    innerPoints.push({ x: outerRight - trackWidth, y: outerTop + trackWidth + innerCornerRadius });
+    innerPoints.push({ x: outerRight - trackWidth, y: outerBottom - trackWidth - innerCornerRadius });
     
     // Untere rechte Ecke (innerer Rand)
     arcPoints(
-      innerRight - innerCornerRadius, innerBottom - innerCornerRadius, innerCornerRadius,
+      outerRight - trackWidth - innerCornerRadius, outerBottom - trackWidth - innerCornerRadius, innerCornerRadius,
       0, Math.PI/2, 10, innerPoints
     );
     
     // Untere Seite (innerer Rand)
-    innerPoints.push({ x: innerRight - innerCornerRadius, y: innerBottom });
-    innerPoints.push({ x: innerLeft + innerCornerRadius, y: innerBottom });
+    innerPoints.push({ x: outerRight - trackWidth - innerCornerRadius, y: outerBottom - trackWidth });
+    innerPoints.push({ x: outerLeft + trackWidth + innerCornerRadius, y: outerBottom - trackWidth });
     
     // Untere linke Ecke (innerer Rand)
     arcPoints(
-      innerLeft + innerCornerRadius, innerBottom - innerCornerRadius, innerCornerRadius,
+      outerLeft + trackWidth + innerCornerRadius, outerBottom - trackWidth - innerCornerRadius, innerCornerRadius,
       Math.PI/2, Math.PI, 10, innerPoints
     );
     
     // Linke Seite (innerer Rand)
-    innerPoints.push({ x: innerLeft, y: innerBottom - innerCornerRadius });
-    innerPoints.push({ x: innerLeft, y: innerTop + innerCornerRadius });
+    innerPoints.push({ x: outerLeft + trackWidth, y: outerBottom - trackWidth - innerCornerRadius });
+    innerPoints.push({ x: outerLeft + trackWidth, y: outerTop + trackWidth + innerCornerRadius });
     
     // Obere linke Ecke (innerer Rand)
     arcPoints(
-      innerLeft + innerCornerRadius, innerTop + innerCornerRadius, innerCornerRadius,
+      outerLeft + trackWidth + innerCornerRadius, outerTop + trackWidth + innerCornerRadius, innerCornerRadius,
       Math.PI, Math.PI*3/2, 10, innerPoints
     );
     
     // Obere Seite (innerer Rand)
-    innerPoints.push({ x: innerLeft + innerCornerRadius, y: innerTop });
-    innerPoints.push({ x: innerRight - innerCornerRadius, y: innerTop });
+    innerPoints.push({ x: outerLeft + trackWidth + innerCornerRadius, y: outerTop + trackWidth });
+    innerPoints.push({ x: outerRight - trackWidth - innerCornerRadius, y: outerTop + trackWidth });
     
     // Speichere die Punkte für die Kollisionserkennung
     this.trackBoundaries = [outerPoints, innerPoints];
@@ -294,37 +285,17 @@ export class Track {
     // Wir nehmen die rechte Gerade, also von innen nach außen auf der rechten Seite
     const finishLineYOffset = 110; // Verschiebung nach unten
     this.finishLine = {
-      start: { x: innerRight + 2, y: centerY + finishLineYOffset }, // +80 Pixel nach unten
+      start: { x: outerRight - trackWidth + 2, y: centerY + finishLineYOffset }, // +80 Pixel nach unten
       end:   { x: outerRight - 2, y: centerY + finishLineYOffset }  // +80 Pixel nach unten
     };
 
     // Startpositionen der Autos: Spielerauto in die Mitte
     const startY = centerY + 40 + finishLineYOffset; // 40 Pixel unterhalb der neuen Startlinie
-    const carSpacing = ((outerRight - innerRight) - 4) / 5;
+    const carSpacing = ((outerRight - (outerRight - trackWidth)) - 4) / 5;
     this.startPositions = [
-      { x: innerRight + carSpacing, y: startY },      // links (KI)
-      { x: innerRight + carSpacing * 2.5, y: startY }, // mitte (Spieler)
-      { x: innerRight + carSpacing * 4, y: startY }   // rechts (KI)
-    ];
-
-    // Checkpoints für die Rundenerfassung (angepasst, damit sie sinnvoll bleiben)
-    this.checkpoints = [
-      // Oben (Mitte)
-      {
-        start: { x: centerX, y: outerTop },
-        end: { x: centerX, y: innerTop }
-      },
-      // Rechts (Mitte) - jetzt die Start-/Ziellinie, daher nicht mehr als Checkpoint nötig
-      // Stattdessen unten (Mitte)
-      {
-        start: { x: centerX, y: outerBottom },
-        end: { x: centerX, y: innerBottom }
-      },
-      // Links (Mitte)
-      {
-        start: { x: outerLeft, y: centerY },
-        end: { x: innerLeft, y: centerY }
-      }
+      { x: outerRight - trackWidth + carSpacing, y: startY },      // links (KI)
+      { x: outerRight - trackWidth + carSpacing * 2.5, y: startY }, // mitte (Spieler)
+      { x: outerRight - trackWidth + carSpacing * 4, y: startY }   // rechts (KI)
     ];
   }
 
@@ -343,16 +314,11 @@ export class Track {
     // Mittelpunkt der Strecke für KI-Pfade
     const middleTrackWidth = trackWidth / 2;
     
-    // Berechne die Ecken des äußeren und inneren Rechtecks
+    // Berechne die Ecken des äußeren Rechtecks
     const outerLeft = centerX - rectWidth / 2;
     const outerRight = centerX + rectWidth / 2;
     const outerTop = centerY - rectHeight / 2;
     const outerBottom = centerY + rectHeight / 2;
-    
-    const innerLeft = outerLeft + trackWidth;
-    const innerRight = outerRight - trackWidth;
-    const innerTop = outerTop + trackWidth;
-    const innerBottom = outerBottom - trackWidth;
     
     // Mittelpfad
     const midLeft = outerLeft + middleTrackWidth;
@@ -380,7 +346,7 @@ export class Track {
     };
     
     // Startpunkt setzen - jetzt auf der rechten Seite, gleiche X-Position wie die Autos
-    const startX = innerRight + (outerRight - innerRight) / 2;
+    const startX = outerRight - trackWidth + (outerRight - (outerRight - trackWidth)) / 2;
     this.aiPath.push({ x: startX, y: centerY });
 
     // Nach oben bis zur Kurve

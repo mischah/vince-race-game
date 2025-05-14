@@ -15,8 +15,6 @@ export class Car {
   private deceleration = 0.05;
   private friction = 0.02;
   private angle = 0; // In Radians
-  private rotationSpeed = 0.02;
-  private rotationEasing = 0.05;
   private currentRotation = 0;
   private distanceTraveled = 0;
   
@@ -97,12 +95,13 @@ export class Car {
       // 1. Geschwindigkeit drosseln, aber nicht stoppen
       this.speed = Math.max(this.speed * 0.7, 1.2); // sanft abbremsen, aber nicht auf 0
       // 2. Position leicht von der Wand wegschieben
-      const track = (collision as any).track;
-      const wallInfo = track.getWallNormalAndType(this.position);
-      if (wallInfo) {
-        const { normal } = wallInfo;
-        this.position.x += normal.x * 2.5; // sanft wegdrücken
-        this.position.y += normal.y * 2.5;
+      if (typeof (collision as any).getWallNormalAndType === 'function') {
+        const wallInfo = (collision as any).getWallNormalAndType(this.position);
+        if (wallInfo) {
+          const { normal } = wallInfo;
+          this.position.x += normal.x * 2.5; // sanft wegdrücken
+          this.position.y += normal.y * 2.5;
+        }
       }
       // 3. KEINE Änderung des Winkels durch die Wand!
       // 4. Steuerung bleibt immer aktiv
@@ -230,8 +229,8 @@ export class Car {
   public updateAI(): void {
     if (this.isPlayer || this.isFinished || this.aiTargetPoints.length === 0) return;
     // Starte erst, wenn das Rennen läuft
-    const game = (window as any).gameInstance;
-    if (game && typeof game.isRunning === 'function' && !game.isRunning()) return;
+    const gameInstance = (globalThis as unknown as { gameInstance?: unknown }).gameInstance;
+    if (gameInstance && typeof (gameInstance as { isRunning?: () => boolean }).isRunning === 'function' && !(gameInstance as { isRunning: () => boolean }).isRunning()) return;
     
     // KI-Steuerung für die Autos
     let currentTarget = this.aiTargetPoints[this.currentAiPointIndex];
@@ -329,7 +328,7 @@ export class Car {
   /**
    * Gibt den Fortschritt des Autos auf der Strecke zurück (Index auf aiPath)
    */
-  public getTrackProgress(track: any): number {
+  public getTrackProgress(track: { getProgressOnTrack(pos: Position): number }): number {
     return track.getProgressOnTrack(this.getPosition());
   }
 }

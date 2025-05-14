@@ -6,6 +6,7 @@ import { Collision } from './Collision';
 import { AudioManager } from './Audio';
 
 export class Game {
+  private root: Document | ShadowRoot;
   private canvas: HTMLCanvasElement;
   private ctx: CanvasRenderingContext2D;
   private track: Track;
@@ -17,16 +18,15 @@ export class Game {
   private audioManager: AudioManager;
   private isGameRunning = false;
   private isGameStarted = false;
-  private isCountdownActive = false;
-  private lastTime = 0;
   private animationFrameId: number | null = null;
   private lapCountingEnabled = false; // Flag, um zu verfolgen, ob die Rundenzählung aktiviert ist
   private lastPlayerLapState = false;
   private lastAiLapStates: boolean[] = [false, false];
   private finishOrder: string[] = [];
 
-  constructor() {
-    this.canvas = document.getElementById('game-canvas') as HTMLCanvasElement;
+  constructor(root: Document | ShadowRoot = globalThis.document) {
+    this.root = root;
+    this.canvas = this.root.getElementById('game-canvas') as HTMLCanvasElement;
     if (!this.canvas) throw new Error('Canvas element not found');
     
     const context = this.canvas.getContext('2d');
@@ -44,14 +44,14 @@ export class Game {
       new Car(this.ctx, '360 Spider', 'orange', false)
     ];
     
-    this.ui = new UI();
+    this.ui = new UI(this.root);
     this.inputHandler = new InputHandler(this);
     this.collision = new Collision(this.track);
     this.audioManager = new AudioManager();
     
     // Verstecke Ampel und Countdown initial
-    const trafficLight = document.getElementById('traffic-light');
-    const countdown = document.getElementById('countdown');
+    const trafficLight = this.root.getElementById('traffic-light');
+    const countdown = this.root.getElementById('countdown');
     if (trafficLight) trafficLight.classList.add('hidden');
     if (countdown) countdown.classList.add('hidden');
   }
@@ -66,26 +66,25 @@ export class Game {
     this.aiCars[1].setStartPosition(this.track.getStartPosition(2)); // rechts (orange)
     
     // Start-Button-Event-Listener
-    const startButton = document.getElementById('start-button');
+    const startButton = this.root.getElementById('start-button');
     if (startButton) {
       startButton.addEventListener('click', () => this.startGame());
     }
     
     // Reset-Button-Event-Listener
-    const resetButton = document.getElementById('reset-button');
+    const resetButton = this.root.getElementById('reset-button');
     if (resetButton) {
       resetButton.addEventListener('click', () => this.resetGame());
     }
     
     // Starte den Spiel-Loop
-    this.gameLoop(0);
+    this.gameLoop();
   }
 
   public startGame(): void {
     if (this.isGameStarted) return;
     
     this.isGameStarted = true;
-    this.isCountdownActive = true;
     this.lapCountingEnabled = false; // Deaktiviere die Rundenzählung zu Beginn
     
     // Platziere Autos direkt an der Startlinie, noch bevor der Countdown beginnt
@@ -100,27 +99,27 @@ export class Game {
     });
     
     // Verstecke den Start-Button
-    const startButton = document.getElementById('start-button');
+    const startButton = this.root.getElementById('start-button');
     if (startButton) startButton.classList.add('hidden');
     
     // Zeige Ampel und Countdown
-    const trafficLight = document.getElementById('traffic-light');
-    const countdown = document.getElementById('countdown');
+    const trafficLight = this.root.getElementById('traffic-light');
+    const countdown = this.root.getElementById('countdown');
     if (trafficLight) trafficLight.classList.remove('hidden');
     if (countdown) countdown.classList.remove('hidden');
     
     // Starte den Countdown
     let count = 3;
-    const redLight = document.querySelector('.light.red');
-    const yellowLight = document.querySelector('.light.yellow');
-    const greenLight = document.querySelector('.light.green');
+    const redLight = this.root.querySelector('.light.red');
+    const yellowLight = this.root.querySelector('.light.yellow');
+    const greenLight = this.root.querySelector('.light.green');
     
     if (redLight) redLight.classList.add('active');
     
     // Spiele den ersten Countdown-Sound
     this.audioManager.playSound('beep-prepare');
     
-    const countdownInterval = setInterval(() => {
+    const countdownInterval = globalThis.setInterval(() => {
       count--;
       
       if (countdown) countdown.textContent = count.toString();
@@ -140,31 +139,30 @@ export class Game {
         // Spiele den Start-Sound
         this.audioManager.playSound('beep-go');
         
-        setTimeout(() => {
+        globalThis.setTimeout(() => {
           // Verstecke Ampel und Countdown
           if (trafficLight) trafficLight.classList.add('hidden');
           if (countdown) countdown.classList.add('hidden');
           // Zeige Timer und Rundenzähler im Overlay
-          const uiCenter = document.getElementById('ui-center');
+          const uiCenter = this.root.getElementById('ui-center');
           if (uiCenter) uiCenter.classList.remove('hidden');
           // Zeige Reset-Button
-          const resetBtn = document.getElementById('reset-button');
+          const resetBtn = this.root.getElementById('reset-button');
           if (resetBtn) resetBtn.classList.remove('hidden');
           // Starte das eigentliche Spiel
           this.isGameRunning = true;
-          this.isCountdownActive = false;
           this.ui.startTimer();
           
           // Aktiviere die Input-Handler
           this.inputHandler.activateControls();
           
           // Aktiviere die Rundenzählung erst nach 2 Sekunden, wenn die Autos bereits losgefahren sind
-          setTimeout(() => {
+          globalThis.setTimeout(() => {
             this.lapCountingEnabled = true;
           }, 2000);
         }, 1000);
         
-        clearInterval(countdownInterval);
+        globalThis.clearInterval(countdownInterval);
       }
     }, 1000);
   }
@@ -172,33 +170,32 @@ export class Game {
   public resetGame(): void {
     // Stoppe den Game-Loop
     if (this.animationFrameId !== null) {
-      cancelAnimationFrame(this.animationFrameId);
+      globalThis.cancelAnimationFrame(this.animationFrameId);
       this.animationFrameId = null;
     }
     
     // Setze Spielstatus zurück
     this.isGameRunning = false;
     this.isGameStarted = false;
-    this.isCountdownActive = false;
     this.lapCountingEnabled = false;
     this.finishOrder = [];
     
     // Setze UI zurück
     this.ui.resetUI();
     // Blende Timer und Rundenzähler im Overlay aus
-    const uiCenter = document.getElementById('ui-center');
+    const uiCenter = this.root.getElementById('ui-center');
     if (uiCenter) uiCenter.classList.add('hidden');
     // Blende Reset-Button aus
-    const resetBtn = document.getElementById('reset-button');
+    const resetBtn = this.root.getElementById('reset-button');
     if (resetBtn) resetBtn.classList.add('hidden');
     
     // Zeige den Start-Button
-    const startButton = document.getElementById('start-button');
+    const startButton = this.root.getElementById('start-button');
     if (startButton) startButton.classList.remove('hidden');
     
     // Verstecke Ampel und Countdown
-    const trafficLight = document.getElementById('traffic-light');
-    const countdown = document.getElementById('countdown');
+    const trafficLight = this.root.getElementById('traffic-light');
+    const countdown = this.root.getElementById('countdown');
     if (trafficLight) {
       trafficLight.classList.add('hidden');
       // Entferne aktive Lichter
@@ -223,7 +220,7 @@ export class Game {
     this.inputHandler.deactivateControls();
     
     // Starte den Game-Loop neu
-    this.gameLoop(0);
+    this.gameLoop();
   }
 
   public getAllCars(): Car[] {
@@ -252,11 +249,7 @@ export class Game {
     this.ui.freezeRanking();
   }
 
-  private gameLoop(timestamp: number): void {
-    // Berechne die Zeit seit dem letzten Frame
-    const deltaTime = timestamp - this.lastTime;
-    this.lastTime = timestamp;
-    
+  private gameLoop(): void {
     // Lösche den Canvas
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
     
@@ -296,7 +289,7 @@ export class Game {
     this.aiCars.forEach(car => car.draw());
     
     // Fortsetzen der Animation
-    this.animationFrameId = requestAnimationFrame(this.gameLoop.bind(this));
+    this.animationFrameId = globalThis.requestAnimationFrame(this.gameLoop.bind(this));
   }
 
   private checkLapProgress(): void {
