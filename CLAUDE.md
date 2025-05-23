@@ -25,6 +25,16 @@ npm run preview
 npm run preview:network
 ```
 
+## GitHub Pages Deployment
+
+The project is set up with GitHub Actions to automatically deploy to GitHub Pages whenever changes are pushed to the main branch. The deployment workflow:
+
+1. Builds the project using `npm run build`
+2. Deploys the contents of the `dist` directory to GitHub Pages
+3. Makes the game available at https://mischah.github.io/race-game/
+
+The GitHub Actions workflow file is located at `.github/workflows/deploy-gh-pages.yml`.
+
 ## Code Architecture
 
 The codebase is organized around the following key files and components:
