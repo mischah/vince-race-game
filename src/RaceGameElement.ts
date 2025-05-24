@@ -12,8 +12,45 @@ export class RaceGameElement extends HTMLElement {
   }
 
   connectedCallback() {
-    // HTML-Struktur für das Spiel in den Shadow DOM einfügen
+    // Ladebalken-HTML einfügen
     this.shadow.innerHTML = `
+      <div id="loading-bar-container">
+        <div id="loading-bar-row">
+          <div id="loading-bar" style="width: 0%"></div>
+          <svg id="loading-finish" viewBox="0 0 18 26">
+            <rect x="0" y="0" width="18" height="26" fill="#fff"/>
+            <g>
+              <rect x="0" y="0" width="4" height="4" fill="#000"/>
+              <rect x="8" y="0" width="4" height="4" fill="#000"/>
+              <rect x="4" y="4" width="4" height="4" fill="#000"/>
+              <rect x="12" y="4" width="4" height="4" fill="#000"/>
+              <rect x="0" y="8" width="4" height="4" fill="#000"/>
+              <rect x="8" y="8" width="4" height="4" fill="#000"/>
+              <rect x="4" y="12" width="4" height="4" fill="#000"/>
+              <rect x="12" y="12" width="4" height="4" fill="#000"/>
+              <rect x="0" y="16" width="4" height="4" fill="#000"/>
+              <rect x="8" y="16" width="4" height="4" fill="#000"/>
+              <rect x="4" y="20" width="4" height="4" fill="#000"/>
+              <rect x="12" y="20" width="4" height="4" fill="#000"/>
+            </g>
+          </svg>
+        </div>
+        <canvas id="loading-car-canvas" width="40" height="60" style="position:absolute; left:0; top:54px; pointer-events:none;"></canvas>
+      </div>
+    ` + this.shadow.innerHTML;
+
+    // Game-Container unsichtbar machen
+    const observer = new MutationObserver(() => {
+      const app = this.shadow.getElementById('app');
+      if (app) {
+        app.classList.add('hidden');
+        observer.disconnect();
+      }
+    });
+    observer.observe(this.shadow, { childList: true, subtree: true });
+
+    // HTML-Struktur für das Spiel in den Shadow DOM einfügen
+    this.shadow.innerHTML += `
       <link rel="stylesheet" href="${this.getStyleUrl()}">
       <div id="app">
         <div id="game-container">
@@ -54,10 +91,70 @@ export class RaceGameElement extends HTMLElement {
         </div>
       </div>
     `;
-    // Initialisiere das Spiel im Shadow DOM
-    setTimeout(() => {
+
+    globalThis.setTimeout(() => {
+      // Ladebalken animieren
+      const bar = this.shadow.getElementById('loading-bar') as HTMLElement;
+      const carCanvas = this.shadow.getElementById('loading-car-canvas') as HTMLCanvasElement;
+      const barRow = this.shadow.getElementById('loading-bar-row') as HTMLElement;
+      if (bar && carCanvas && barRow) {
+        let progress = 0;
+        const barRowWidth = () => barRow.offsetWidth;
+        const barMax = () => barRowWidth() - 18; // 18px für Ziellinie
+        const carWidth = 28;
+        const carHeight = 48;
+        const animate = () => {
+          progress += Math.random() * 12 + 8;
+          if (progress > 100) progress = 100;
+          bar.style.width = progress + '%';
+          // Auto fährt UNTER dem Balken mit der Spitze an der aktuellen Balkenbreite
+          const px = (barMax() * progress / 100) - carWidth / 2 + 9;
+          carCanvas.style.left = `${Math.max(0, px)}px`;
+          // Auto zeichnen (nach rechts ausgerichtet)
+          const ctx = carCanvas.getContext('2d');
+          if (ctx) {
+            ctx.clearRect(0, 0, carCanvas.width, carCanvas.height);
+            ctx.save();
+            ctx.translate(carCanvas.width / 2, carCanvas.height / 2);
+            ctx.rotate(Math.PI / 2); // Nach rechts ausrichten
+            // Karosserie
+            ctx.fillStyle = '#ff0000';
+            ctx.fillRect(-carWidth / 2, -carHeight / 2, carWidth, carHeight);
+            // Scheinwerfer
+            ctx.fillStyle = 'yellow';
+            ctx.fillRect(-carWidth / 2 + 4, -carHeight / 2, 6, 8);
+            ctx.fillRect(carWidth / 2 - 10, -carHeight / 2, 6, 8);
+            // Fenster
+            ctx.fillStyle = 'lightblue';
+            ctx.fillRect(-carWidth / 2 + 5, -carHeight / 2 + 10, carWidth - 10, 12);
+            // Räder
+            ctx.fillStyle = '#222';
+            ctx.fillRect(-carWidth / 2 - 4, -carHeight / 2 + 6, 8, 12);
+            ctx.fillRect(carWidth / 2 - 4, -carHeight / 2 + 6, 8, 12);
+            ctx.fillRect(-carWidth / 2 - 4, carHeight / 2 - 18, 8, 12);
+            ctx.fillRect(carWidth / 2 - 4, carHeight / 2 - 18, 8, 12);
+            ctx.restore();
+          }
+          if (progress < 100) {
+            globalThis.setTimeout(animate, 180);
+          } else {
+            globalThis.setTimeout(() => {
+              const cont = this.shadow.getElementById('loading-bar-container');
+              if (cont) cont.classList.add('hide');
+              // Spiel nach 500ms sichtbar machen
+              globalThis.setTimeout(() => {
+                const app = this.shadow.getElementById('app');
+                if (app) app.classList.remove('hidden');
+              }, 500);
+            }, 400);
+          }
+        };
+        animate();
+      }
+
       this.gameInstance = new Game(this.shadow);
-      (window as any).gameInstance = this.gameInstance;
+      const gameInstance = this.gameInstance;
+      (globalThis as { gameInstance?: typeof gameInstance }).gameInstance = gameInstance;
       this.gameInstance.initialize();
       this.setupTouchControls();
     }, 0);
