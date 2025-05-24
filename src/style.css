@@ -382,7 +382,7 @@ button:focus-visible {
   bottom: 0;
   width: 100%;
   display: none;
-  justify-content: space-between;
+  justify-content: space-between; /* Buttons an die Seitenränder */
   pointer-events: none;
   z-index: 30;
   padding: 0 0 18px 0;
@@ -396,12 +396,12 @@ button:focus-visible {
 
 #btn-left, #btn-right {
   pointer-events: auto;
-  width: 60px;
-  height: 60px;
-  border-radius: 50%;
+  width: 70px;
+  height: 70px;
+  border-radius: 5px; /* wie Start-Button */
   background: #333a;
   color: #fff;
-  font-size: 2em;
+  font-size: 2.2em;
   border: 2px solid #fff;
   display: flex;
   align-items: center;
@@ -409,11 +409,25 @@ button:focus-visible {
   box-shadow: 0 2px 8px #0005;
   user-select: none;
   touch-action: manipulation;
-  margin: 0 18px;
+  margin: 0 4vw;
+  transition: background 0.2s;
 }
-#btn-left { justify-content: flex-start; }
-#btn-right { justify-content: flex-end; }
 #btn-left:active, #btn-right:active {
   background: #4caf50;
   color: #fff;
+}
+
+/* Pfeil zentriert */
+#btn-left, #btn-right {
+  justify-content: center;
+}
+
+/* Größer auf iPad und großen Tablets */
+@media (min-width: 768px) and (max-width: 1200px) and (pointer: coarse) {
+  #btn-left, #btn-right {
+    width: 100px;
+    height: 90px;
+    font-size: 2.8em;
+    margin: 0 2vw;
+  }
 }
