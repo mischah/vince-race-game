@@ -30,6 +30,8 @@ class Car {
     // Offset von -10 bis +10 px
     y: (Math.random() - 0.5) * 20
   };
+  smokeParticles = [];
+  smokeEmitCooldown = 0;
   constructor(ctx, name, color, isPlayer) {
     this.ctx = ctx;
     this.name = name;
@@ -39,8 +41,12 @@ class Car {
       this.checkpoints.push(false);
     }
   }
+  clearSmoke() {
+    this.smokeParticles = [];
+  }
   draw() {
     this.ctx.save();
+    if (this.smokeParticles.length > 0) this.drawSmoke();
     this.ctx.translate(this.position.x, this.position.y);
     this.ctx.rotate(this.angle);
     this.ctx.fillStyle = this.color;
@@ -54,8 +60,24 @@ class Car {
     this.ctx.fillRect(-windowWidth / 2, -windowHeight / 2, windowWidth, windowHeight);
     this.ctx.restore();
   }
+  drawSmoke() {
+    for (const p of this.smokeParticles) {
+      this.ctx.save();
+      this.ctx.globalAlpha = p.alpha;
+      this.ctx.beginPath();
+      this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      this.ctx.fillStyle = "rgba(120,120,120,0.5)";
+      this.ctx.shadowColor = "#888";
+      this.ctx.shadowBlur = 6;
+      this.ctx.fill();
+      this.ctx.restore();
+    }
+  }
   update(collision) {
-    if (this.isFinished) return;
+    if (this.isFinished) {
+      this.smokeParticles = [];
+      return;
+    }
     if (this.isPlayer) {
       this.speed = Math.min(this.maxSpeed, this.speed + this.acceleration);
     }
@@ -87,6 +109,48 @@ class Car {
     if (Math.abs(this.speed) < 0.01) {
       this.speed = 0;
     }
+    this.updateSmoke();
+  }
+  updateSmoke() {
+    if (!this.isFinished && this.speed > 1.2) {
+      this.smokeEmitCooldown -= 1;
+      if (this.smokeEmitCooldown <= 0) {
+        for (let i = 0; i < 3; i++) {
+          this.emitSmoke();
+        }
+        this.smokeEmitCooldown = Math.max(2, 8 - Math.floor(this.speed * 1.2));
+      }
+    } else {
+      this.smokeEmitCooldown = 0;
+    }
+    for (const p of this.smokeParticles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.radius += 0.1;
+      p.alpha -= 0.018;
+      p.life++;
+    }
+    this.smokeParticles = this.smokeParticles.filter((p) => p.alpha > 0.01 && p.life < p.maxLife);
+  }
+  emitSmoke() {
+    const rearOffset = this.size.height / 2 - 2;
+    const angle = this.angle + Math.PI;
+    const baseX = this.position.x + Math.sin(angle) * rearOffset;
+    const baseY = this.position.y - Math.cos(angle) * rearOffset;
+    const spread = 1.2 + Math.random() * 1.2;
+    const vx = Math.sin(angle) * (0.4 + Math.random() * 0.18) + (Math.random() - 0.5) * 0.18;
+    const vy = -Math.cos(angle) * (0.4 + Math.random() * 0.18) + (Math.random() - 0.5) * 0.18;
+    this.smokeParticles.push({
+      x: baseX + (Math.random() - 0.5) * spread,
+      y: baseY + (Math.random() - 0.5) * spread,
+      vx,
+      vy,
+      alpha: 0.48 + Math.random() * 0.18,
+      radius: 2.2 + Math.random() * 1.1,
+      life: 0,
+      maxLife: 32 + Math.floor(Math.random() * 10)
+      // kürzerer Schweif
+    });
   }
   setStartPosition(position) {
     this.position = { ...position };
@@ -161,6 +225,7 @@ class Car {
     for (let i = 0; i < this.checkpoints.length; i++) {
       this.checkpoints[i] = false;
     }
+    this.clearSmoke();
   }
   setAiTargetPoints(points) {
     this.aiTargetPoints = points;
@@ -1323,6 +1388,8 @@ class Game {
     }
     this.playerCar.reset();
     this.aiCars.forEach((car) => car.reset());
+    this.playerCar.clearSmoke();
+    this.aiCars.forEach((car) => car.clearSmoke());
     this.aiCars[0].setStartPosition(this.track.getStartPosition(0));
     this.playerCar.setStartPosition(this.track.getStartPosition(1));
     this.aiCars[1].setStartPosition(this.track.getStartPosition(2));
@@ -1349,6 +1416,8 @@ class Game {
     this.ui.stopTimer(true);
     this.ui.freezeRanking();
     this.ui.showBestTime();
+    this.playerCar.clearSmoke();
+    this.aiCars.forEach((car) => car.clearSmoke());
   }
   gameLoop() {
     this.ctx.clearRect(0, 0, this.canvas.width, this.canvas.height);
