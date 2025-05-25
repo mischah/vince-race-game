@@ -91,6 +91,16 @@ h1 {
   font-family: monospace;
 }
 
+#best-time {
+  font-size: 0.9em;
+  opacity: 0.8;
+  margin-bottom: 2px;
+  font-family: monospace;
+  text-align: center;
+  color: #fff;
+  letter-spacing: 0.5px;
+}
+
 #lap-counter {
   font-size: 20px;
   text-align: center;
