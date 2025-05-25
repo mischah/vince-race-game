@@ -60,10 +60,14 @@ export class Car {
     }
   }
 
+  public clearSmoke(): void {
+    this.smokeParticles = [];
+  }
+
   public draw(): void {
     this.ctx.save();
     // Zeichne Rauchwolken hinter dem Auto
-    this.drawSmoke();
+    if (this.smokeParticles.length > 0) this.drawSmoke();
     
     // Verschiebe den Kontext zum Auto und rotiere entsprechend
     this.ctx.translate(this.position.x, this.position.y);
@@ -103,7 +107,11 @@ export class Car {
   }
 
   public update(collision: Collision): void {
-    if (this.isFinished) return;
+    // Only clear smoke and return if car is finished
+    if (this.isFinished) {
+      this.smokeParticles = [];
+      return;
+    }
 
     // Automatische Beschleunigung für Spielerauto
     if (this.isPlayer) {
@@ -309,6 +317,8 @@ export class Car {
     for (let i = 0; i < this.checkpoints.length; i++) {
       this.checkpoints[i] = false;
     }
+
+    this.clearSmoke();
   }
 
   public setAiTargetPoints(points: Position[]): void {

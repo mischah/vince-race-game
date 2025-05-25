@@ -213,6 +213,9 @@ export class Game {
     // Setze Autos zurück
     this.playerCar.reset();
     this.aiCars.forEach(car => car.reset());
+    // Rauchwolken aller Autos entfernen (falls Autos ausgeblendet werden)
+    this.playerCar.clearSmoke();
+    this.aiCars.forEach(car => car.clearSmoke());
     
     // Platziere die Autos an der Startlinie nach dem Reset
     this.aiCars[0].setStartPosition(this.track.getStartPosition(0));
@@ -251,6 +254,9 @@ export class Game {
     this.ui.stopTimer(true); // true = Spiel regulär beendet
     this.ui.freezeRanking();
     this.ui.showBestTime(); // Bestzeit nach Spielende anzeigen
+    // Rauchwolken aller Autos entfernen
+    this.playerCar.clearSmoke();
+    this.aiCars.forEach(car => car.clearSmoke());
   }
 
   private gameLoop(): void {
