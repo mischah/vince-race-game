@@ -2,6 +2,18 @@ import type { Collision } from './Collision';
 import type { Position, Size } from './types';
 import { DEBUG } from '../config';
 
+// --- Rauchwolken/Smoke Particle System ---
+type SmokeParticle = {
+  x: number;
+  y: number;
+  vx: number;
+  vy: number;
+  alpha: number;
+  radius: number;
+  life: number;
+  maxLife: number;
+};
+
 export class Car {
   private ctx: CanvasRenderingContext2D;
   private name: string;
@@ -32,6 +44,9 @@ export class Car {
     x: (Math.random() - 0.5) * 20, // Offset von -10 bis +10 px
     y: (Math.random() - 0.5) * 20
   };
+
+  private smokeParticles: SmokeParticle[] = [];
+  private smokeEmitCooldown = 0;
   
   constructor(ctx: CanvasRenderingContext2D, name: string, color: string, isPlayer: boolean) {
     this.ctx = ctx;
@@ -47,6 +62,8 @@ export class Car {
 
   public draw(): void {
     this.ctx.save();
+    // Zeichne Rauchwolken hinter dem Auto
+    this.drawSmoke();
     
     // Verschiebe den Kontext zum Auto und rotiere entsprechend
     this.ctx.translate(this.position.x, this.position.y);
@@ -68,6 +85,21 @@ export class Car {
     this.ctx.fillRect(-windowWidth / 2, -windowHeight / 2, windowWidth, windowHeight);
 
     this.ctx.restore();
+  }
+
+  private drawSmoke(): void {
+    // Zeichne alle aktiven Rauchpartikel
+    for (const p of this.smokeParticles) {
+      this.ctx.save();
+      this.ctx.globalAlpha = p.alpha;
+      this.ctx.beginPath();
+      this.ctx.arc(p.x, p.y, p.radius, 0, Math.PI * 2);
+      this.ctx.fillStyle = 'rgba(120,120,120,0.5)';
+      this.ctx.shadowColor = '#888';
+      this.ctx.shadowBlur = 6;
+      this.ctx.fill();
+      this.ctx.restore();
+    }
   }
 
   public update(collision: Collision): void {
@@ -122,6 +154,58 @@ export class Car {
     if (Math.abs(this.speed) < 0.01) {
       this.speed = 0;
     }
+
+    // Rauchwolken-Logik
+    this.updateSmoke();
+  }
+
+  private updateSmoke(): void {
+    // Emit smoke if moving and not finished
+    if (!this.isFinished && this.speed > 1.2) {
+      this.smokeEmitCooldown -= 1;
+      if (this.smokeEmitCooldown <= 0) {
+        // Emit multiple particles for density
+        for (let i = 0; i < 3; i++) {
+          this.emitSmoke();
+        }
+        // Emissionsrate abhängig von Geschwindigkeit
+        this.smokeEmitCooldown = Math.max(2, 8 - Math.floor(this.speed * 1.2));
+      }
+    } else {
+      this.smokeEmitCooldown = 0;
+    }
+    // Update particles
+    for (const p of this.smokeParticles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      p.radius += 0.10; // etwas schneller wachsen
+      p.alpha -= 0.018; // schneller ausblenden
+      p.life++;
+    }
+    // Remove dead particles
+    this.smokeParticles = this.smokeParticles.filter(p => p.alpha > 0.01 && p.life < p.maxLife);
+  }
+
+  private emitSmoke(): void {
+    // Emit from rear of car (relative to car center)
+    const rearOffset = this.size.height / 2 - 2;
+    const angle = this.angle + Math.PI; // rear
+    const baseX = this.position.x + Math.sin(angle) * rearOffset;
+    const baseY = this.position.y - Math.cos(angle) * rearOffset;
+    // Weniger Spread für dichteren Rauch
+    const spread = 1.2 + Math.random() * 1.2;
+    const vx = Math.sin(angle) * (0.4 + Math.random() * 0.18) + (Math.random() - 0.5) * 0.18;
+    const vy = -Math.cos(angle) * (0.4 + Math.random() * 0.18) + (Math.random() - 0.5) * 0.18;
+    this.smokeParticles.push({
+      x: baseX + (Math.random() - 0.5) * spread,
+      y: baseY + (Math.random() - 0.5) * spread,
+      vx,
+      vy,
+      alpha: 0.48 + Math.random() * 0.18,
+      radius: 2.2 + Math.random() * 1.1,
+      life: 0,
+      maxLife: 32 + Math.floor(Math.random() * 10) // kürzerer Schweif
+    });
   }
 
   public setStartPosition(position: Position): void {
