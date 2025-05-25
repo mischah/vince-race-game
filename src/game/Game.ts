@@ -183,6 +183,7 @@ export class Game {
     
     // Setze UI zurück
     this.ui.resetUI();
+    this.ui.stopTimer(false); // false = kein reguläres Spielende
     this.ui.showBestTime(); // Bestzeit nach Reset anzeigen
     // Blende Timer und Rundenzähler im Overlay aus
     const uiCenter = this.root.getElementById('ui-center');
@@ -247,7 +248,7 @@ export class Game {
 
   public endGame(): void {
     this.isGameRunning = false;
-    this.ui.stopTimer();
+    this.ui.stopTimer(true); // true = Spiel regulär beendet
     this.ui.freezeRanking();
     this.ui.showBestTime(); // Bestzeit nach Spielende anzeigen
   }

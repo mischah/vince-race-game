@@ -157,6 +157,13 @@ export class RaceGameElement extends HTMLElement {
       (globalThis as { gameInstance?: typeof gameInstance }).gameInstance = gameInstance;
       this.gameInstance.initialize();
       this.setupTouchControls();
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const ui = (this.gameInstance as any)?.ui;
+      if (ui && typeof ui.showBestTime === 'function') {
+        ui.showBestTime();
+        // Immer anzeigen, auch vor Spielstart
+        if (ui.bestTimeElement) ui.bestTimeElement.style.display = '';
+      }
     }, 0);
   }
 

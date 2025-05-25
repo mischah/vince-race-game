@@ -93,16 +93,21 @@ export class UI {
     globalThis.localStorage.setItem(this.bestTimeKey, String(ms));
   }
 
-  private formatMs(ms: number): string {
+  private formatMs(ms: number, showMillis = true): string {
     const minutes = Math.floor(ms / 60000);
     const seconds = Math.floor((ms % 60000) / 1000);
-    const milliseconds = Math.floor((ms % 1000) / 10);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+    if (showMillis) {
+      const milliseconds = Math.floor((ms % 1000) / 10);
+      return `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+    } else {
+      return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    }
   }
 
   public showBestTime() {
     if (this.bestTimeElement && this.bestTime !== null) {
-      this.bestTimeElement.textContent = `Bestzeit: ${this.formatMs(this.bestTime)}`;
+      // Bestzeit immer wie die aktuelle Zeit runden (mit Hundertstel)
+      this.bestTimeElement.textContent = `Bestzeit: ${this.formatMs(this.bestTime, true)}`;
       this.bestTimeElement.style.display = '';
     } else if (this.bestTimeElement) {
       this.bestTimeElement.style.display = 'none';
@@ -133,17 +138,19 @@ export class UI {
     }, 10);
   }
 
-  public stopTimer(): void {
+  public stopTimer(isGameEnd = false): void {
     if (this.timerIntervalId !== null) {
       globalThis.clearInterval(this.timerIntervalId);
       this.timerIntervalId = null;
     }
-    // Bestzeit speichern, wenn nötig
-    const elapsed = Date.now() - this.gameStartTime;
-    if (this.timerElement && this.timerElement.textContent && this.timerElement.textContent !== '0:00.00') {
-      if (this.bestTime === null || elapsed < this.bestTime) {
-        this.saveBestTime(elapsed);
-        this.showBestTime();
+    // Bestzeit speichern, wenn nötig und das Spiel regulär beendet wurde
+    if (isGameEnd) {
+      const elapsed = Date.now() - this.gameStartTime;
+      if (this.timerElement && this.timerElement.textContent && this.timerElement.textContent !== '0:00.00') {
+        if (this.bestTime === null || elapsed < this.bestTime) {
+          this.saveBestTime(elapsed);
+          this.showBestTime();
+        }
       }
     }
   }
