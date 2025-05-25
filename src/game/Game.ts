@@ -319,9 +319,7 @@ export class Game {
 
   private checkGameEnd(): void {
     const totalLaps = 3;
-    const allFinished = this.getAllCars().every(car => car.getLapsCompleted() >= totalLaps);
-    
-    if (allFinished) {
+    if (this.playerCar.getLapsCompleted() >= totalLaps) {
       this.endGame();
     }
   }
