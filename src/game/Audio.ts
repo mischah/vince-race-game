@@ -1,3 +1,11 @@
+/// <reference lib="dom" />
+
+declare var Audio: {
+  prototype: HTMLAudioElement;
+  new(src?: string): HTMLAudioElement;
+};
+declare var console: Console;
+
 export class AudioManager {
   private sounds: { [key: string]: HTMLAudioElement } = {};
 
@@ -8,8 +16,8 @@ export class AudioManager {
 
   private loadSounds(): void {
     // Countdown-Sounds laden
-    this.loadSound('beep-prepare', '/sounds/beep-prepare.mp3');
-    this.loadSound('beep-go', '/sounds/beep-go.mp3');
+    this.loadSound('beep-prepare', 'sounds/beep-prepare.mp3');
+    this.loadSound('beep-go', 'sounds/beep-go.mp3');
   }
 
   private loadSound(name: string, path: string): void {
@@ -19,9 +27,8 @@ export class AudioManager {
 
   public playSound(name: string): void {
     if (this.sounds[name]) {
-      // Sound zurücksetzen und abspielen
       this.sounds[name].currentTime = 0;
-      this.sounds[name].play().catch(error => {
+      this.sounds[name].play().catch((error) => {
         console.error(`Error playing sound ${name}:`, error);
       });
     } else {
