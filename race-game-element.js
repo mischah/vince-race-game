@@ -1317,8 +1317,7 @@ class Game {
   }
   checkGameEnd() {
     const totalLaps = 3;
-    const allFinished = this.getAllCars().every((car) => car.getLapsCompleted() >= totalLaps);
-    if (allFinished) {
+    if (this.playerCar.getLapsCompleted() >= totalLaps) {
       this.endGame();
     }
   }
