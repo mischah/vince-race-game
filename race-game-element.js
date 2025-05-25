@@ -1078,8 +1078,8 @@ class AudioManager {
     this.loadSounds();
   }
   loadSounds() {
-    this.loadSound("beep-prepare", "/sounds/beep-prepare.mp3");
-    this.loadSound("beep-go", "/sounds/beep-go.mp3");
+    this.loadSound("beep-prepare", "sounds/beep-prepare.mp3");
+    this.loadSound("beep-go", "sounds/beep-go.mp3");
   }
   loadSound(name, path) {
     const sound = new Audio(path);
