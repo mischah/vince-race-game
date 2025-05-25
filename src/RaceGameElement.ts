@@ -55,7 +55,7 @@ export class RaceGameElement extends HTMLElement {
       <div id="app">
         <div id="game-container">
           <div id="ui-top">
-            <div id="headline">Vince Rennen</div>
+            <div id="headline">Race Game</div>
             <div id="ranking">
               <div class="ranking-title">Rangliste</div>
               <div id="ranking-list">
