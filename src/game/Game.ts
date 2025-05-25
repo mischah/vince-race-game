@@ -83,6 +83,7 @@ export class Game {
 
   public startGame(): void {
     if (this.isGameStarted) return;
+    this.ui.showBestTime(); // Bestzeit immer anzeigen, auch nach Reset
     
     this.isGameStarted = true;
     this.lapCountingEnabled = false; // Deaktiviere die Rundenzählung zu Beginn
@@ -182,6 +183,7 @@ export class Game {
     
     // Setze UI zurück
     this.ui.resetUI();
+    this.ui.showBestTime(); // Bestzeit nach Reset anzeigen
     // Blende Timer und Rundenzähler im Overlay aus
     const uiCenter = this.root.getElementById('ui-center');
     if (uiCenter) uiCenter.classList.add('hidden');
@@ -247,6 +249,7 @@ export class Game {
     this.isGameRunning = false;
     this.ui.stopTimer();
     this.ui.freezeRanking();
+    this.ui.showBestTime(); // Bestzeit nach Spielende anzeigen
   }
 
   private gameLoop(): void {

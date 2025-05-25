@@ -16,7 +16,11 @@ export class UI {
   private gameStartTime: number = 0;
   private timerIntervalId: number | null = null;
 
-  constructor(root: Document | ShadowRoot = document) {
+  private bestTimeKey = 'racegame_best_time';
+  private bestTime: number | null = null;
+  private bestTimeElement: HTMLElement | null = null;
+
+  constructor(root: Document | ShadowRoot = globalThis.document) {
     this.root = root;
     this.timerElement = this.root.getElementById('timer');
     this.lapCounterElement = this.root.getElementById('lap-counter');
@@ -47,21 +51,100 @@ export class UI {
         }
       });
     }
+
+    // Bestzeit-Element erzeugen
+    this.bestTimeElement = this.root.getElementById('best-time');
+    if (!this.bestTimeElement) {
+      // Erzeuge ein Element im Kontext von root, falls möglich, sonst fallback auf globalThis.document
+      const createDiv = (this.root as Document).createElement
+        ? (this.root as Document).createElement.bind(this.root)
+        : globalThis.document.createElement.bind(globalThis.document);
+      this.bestTimeElement = createDiv('div');
+      this.bestTimeElement.id = 'best-time';
+      this.bestTimeElement.style.fontSize = '0.9em';
+      this.bestTimeElement.style.opacity = '0.8';
+      this.bestTimeElement.style.marginBottom = '2px';
+      this.bestTimeElement.style.fontFamily = 'monospace';
+      this.bestTimeElement.style.textAlign = 'center';
+      this.bestTimeElement.style.display = 'none';
+      // Timer-Container oder Start-Button suchen
+      const timerContainer = this.root.getElementById('timer-container');
+      if (timerContainer) {
+        timerContainer.parentElement?.insertBefore(this.bestTimeElement, timerContainer);
+      } else {
+        // Fallback: vor Start-Button
+        const startBtn = this.root.getElementById('start-button');
+        if (startBtn && startBtn.parentElement) {
+          startBtn.parentElement.insertBefore(this.bestTimeElement, startBtn);
+        }
+      }
+    }
+    this.loadBestTime();
+    this.showBestTime();
+  }
+
+  private loadBestTime() {
+    const val = globalThis.localStorage.getItem(this.bestTimeKey);
+    this.bestTime = val ? parseInt(val, 10) : null;
+  }
+
+  private saveBestTime(ms: number) {
+    this.bestTime = ms;
+    globalThis.localStorage.setItem(this.bestTimeKey, String(ms));
+  }
+
+  private formatMs(ms: number): string {
+    const minutes = Math.floor(ms / 60000);
+    const seconds = Math.floor((ms % 60000) / 1000);
+    const milliseconds = Math.floor((ms % 1000) / 10);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}.${milliseconds.toString().padStart(2, '0')}`;
+  }
+
+  public showBestTime() {
+    if (this.bestTimeElement && this.bestTime !== null) {
+      this.bestTimeElement.textContent = `Bestzeit: ${this.formatMs(this.bestTime)}`;
+      this.bestTimeElement.style.display = '';
+    } else if (this.bestTimeElement) {
+      this.bestTimeElement.style.display = 'none';
+    }
+  }
+
+  public hideBestTime() {
+    if (this.bestTimeElement) this.bestTimeElement.style.display = 'none';
+  }
+
+  public getBestTime(): number | null {
+    return this.bestTime;
+  }
+
+  public showBestTimeAboveStart() {
+    if (this.bestTimeElement && this.bestTime !== null) {
+      this.bestTimeElement.textContent = `Bestzeit: ${this.formatMs(this.bestTime)}`;
+      this.bestTimeElement.style.display = '';
+    }
   }
 
   public startTimer(): void {
     this.gameStartTime = Date.now();
 
     // Starte den Timer, der jede 10 ms aktualisiert wird (für 1/100 Sekunde)
-    this.timerIntervalId = window.setInterval(() => {
+    this.timerIntervalId = globalThis.setInterval(() => {
       this.updateTimer();
     }, 10);
   }
 
   public stopTimer(): void {
     if (this.timerIntervalId !== null) {
-      clearInterval(this.timerIntervalId);
+      globalThis.clearInterval(this.timerIntervalId);
       this.timerIntervalId = null;
+    }
+    // Bestzeit speichern, wenn nötig
+    const elapsed = Date.now() - this.gameStartTime;
+    if (this.timerElement && this.timerElement.textContent && this.timerElement.textContent !== '0:00.00') {
+      if (this.bestTime === null || elapsed < this.bestTime) {
+        this.saveBestTime(elapsed);
+        this.showBestTime();
+      }
     }
   }
 
@@ -94,7 +177,8 @@ export class UI {
 
   public updateRanking(cars: Car[]): void {
     // Wenn eine feste Einlaufreihenfolge existiert, zeige diese an
-    const game = (window as any).gameInstance;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const game = (globalThis as { gameInstance?: any }).gameInstance;
     if (game && typeof game.getFinishOrder === 'function') {
       const finishOrder: string[] = game.getFinishOrder();
       if (finishOrder && finishOrder.length > 0) {
@@ -170,7 +254,8 @@ export class UI {
   private sortByDistanceWithHysteresis(cars: Car[]): Car[] {
     if (cars.length <= 1) return cars;
     // Sortiere nach Streckenfortschritt (aiPath), nicht nach distanceTraveled
-    const game = (window as any).gameInstance;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const game = (globalThis as { gameInstance?: any }).gameInstance;
     const track = game && typeof game.getTrack === 'function' ? game.getTrack() : null;
     return [...cars].sort((a, b) => {
       if (track) {
@@ -254,7 +339,10 @@ export class UI {
         rankElement.textContent = `${index + 1}. ${name}`;
 
         // Füge den Farbblock für das Auto hinzu
-        const colorSpan = document.createElement('span');
+        const createSpan = (this.root as Document).createElement
+          ? (this.root as Document).createElement.bind(this.root)
+          : globalThis.document.createElement.bind(globalThis.document);
+        const colorSpan = createSpan('span');
         colorSpan.className = `car-color ${car.getColor()}`;
         rankElement.appendChild(colorSpan);
 
@@ -290,22 +378,25 @@ export class UI {
       let rankAi2Element = this.root.getElementById('rank-ai2');
 
       // Falls Elemente nicht existieren, neu erstellen
+      const createDiv = (this.root as Document).createElement
+        ? (this.root as Document).createElement.bind(this.root)
+        : globalThis.document.createElement.bind(globalThis.document);
       if (!rankPlayerElement) {
-        rankPlayerElement = document.createElement('div');
+        rankPlayerElement = createDiv('div');
         rankPlayerElement.id = 'rank-player';
         rankPlayerElement.className = 'ranking-item';
         this.rankingElements['Enzo'] = rankPlayerElement;
       }
 
       if (!rankAi1Element) {
-        rankAi1Element = document.createElement('div');
+        rankAi1Element = createDiv('div');
         rankAi1Element.id = 'rank-ai1';
         rankAi1Element.className = 'ranking-item';
         this.rankingElements['F50'] = rankAi1Element;
       }
 
       if (!rankAi2Element) {
-        rankAi2Element = document.createElement('div');
+        rankAi2Element = createDiv('div');
         rankAi2Element.id = 'rank-ai2';
         rankAi2Element.className = 'ranking-item';
         this.rankingElements['360 Spider'] = rankAi2Element;
@@ -342,5 +433,7 @@ export class UI {
     this.lastUpdateTime = 0;
 
     this.rankingFrozen = false;
+
+    this.showBestTime();
   }
 }
