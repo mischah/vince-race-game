@@ -4,7 +4,7 @@ export class UI {
   private root: Document | ShadowRoot;
   private timerElement: HTMLElement | null;
   private lapCounterElement: HTMLElement | null;
-  private rankingElements: { [key: string]: HTMLElement | null };
+  private rankingElements: { [key: string]: HTMLElement | null } = {};
   private rankingContainer: HTMLElement | null;
   private currentRanking: string[] = []; // Speichert die aktuelle Reihenfolge der Autos
   private lastDistances: Map<string, number> = new Map(); // Speichert die letzte bekannte Distanz jedes Autos
@@ -444,7 +444,7 @@ export class UI {
           const element = elements[index];
           if (element) {
             element.innerHTML = `${index + 1}. ${car.getName()} <span class="car-color ${car.getColor()}"></span>`;
-            this.rankingContainer.appendChild(element);
+            this.rankingContainer?.appendChild(element);
             // Update the ranking elements mapping with current car names
             this.rankingElements[car.getName()] = element;
           }
@@ -471,6 +471,8 @@ export class UI {
     // Get current car names for ranking
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let carNames = ['Enzo', 'F50', '360 Spider'];
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const gameInstance = (globalThis as { gameInstance?: any }).gameInstance;
     if (gameInstance && typeof gameInstance.getAllCars === 'function') {
       const cars = gameInstance.getAllCars();
       carNames = cars.map((car: any) => car.getName());
