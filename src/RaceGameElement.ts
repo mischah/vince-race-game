@@ -75,7 +75,10 @@ export class RaceGameElement extends HTMLElement {
                 <div id="lap-counter">Runde: 0/3</div>
                 <button id="reset-button" class="hidden">Reset</button>
               </div>
-              <button id="start-button">Start</button>
+              <div id="game-buttons">
+                <button id="menu-button">Menü</button>
+                <button id="start-button">Start</button>
+              </div>
               <div id="traffic-light">
                 <div class="light red"></div>
                 <div class="light yellow"></div>
@@ -86,6 +89,28 @@ export class RaceGameElement extends HTMLElement {
                 <button class="touch-btn" id="btn-left">&#8592;</button>
                 <button class="touch-btn" id="btn-right">&#8594;</button>
               </div>
+            </div>
+          </div>
+        </div>
+        <div id="menu-modal" class="hidden">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h2 class="modal-title">Spieler-Einstellungen</h2>
+              <button class="close-button">&times;</button>
+            </div>
+            <div class="form-group">
+              <label for="player-name">Spieler-Name:</label>
+              <input type="text" id="player-name" placeholder="Geben Sie Ihren Namen ein" maxlength="20">
+            </div>
+            <div class="form-group">
+              <label for="car-color">Auto-Farbe wählen:</label>
+              <div class="color-grid" id="color-grid">
+                <!-- Color options will be populated dynamically -->
+              </div>
+            </div>
+            <div class="modal-buttons">
+              <button class="modal-button secondary" id="modal-cancel">Abbrechen</button>
+              <button class="modal-button primary" id="modal-save">Übernehmen</button>
             </div>
           </div>
         </div>
@@ -157,6 +182,7 @@ export class RaceGameElement extends HTMLElement {
       (globalThis as { gameInstance?: typeof gameInstance }).gameInstance = gameInstance;
       this.gameInstance.initialize();
       this.setupTouchControls();
+      this.setupMenuModal();
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const ui = (this.gameInstance as any)?.ui;
       if (ui && typeof ui.showBestTime === 'function') {
@@ -201,6 +227,114 @@ export class RaceGameElement extends HTMLElement {
       btn.addEventListener('mousedown', e => { e.preventDefault(); startAction(action); });
       btn.addEventListener('mouseup', e => { e.preventDefault(); stopAction(action); });
       btn.addEventListener('mouseleave', e => { e.preventDefault(); stopAction(action); });
+    });
+  }
+
+  private setupMenuModal() {
+    // Import colors from config
+    import('./config').then(({ CAR_COLORS }) => {
+      this.populateColorGrid(CAR_COLORS);
+    });
+
+    // Menu button event listener
+    const menuButton = this.shadow.getElementById('menu-button');
+    const modal = this.shadow.getElementById('menu-modal');
+    const closeButton = this.shadow.querySelector('.close-button');
+    const cancelButton = this.shadow.getElementById('modal-cancel');
+    const saveButton = this.shadow.getElementById('modal-save');
+    const playerNameInput = this.shadow.getElementById('player-name') as HTMLInputElement;
+
+    // Load saved settings
+    const savedName = localStorage.getItem('race-game-player-name') || '';
+    const savedColor = localStorage.getItem('race-game-player-color') || 'red';
+    
+    if (playerNameInput) {
+      playerNameInput.value = savedName;
+    }
+
+    // Show modal
+    if (menuButton && modal) {
+      menuButton.addEventListener('click', () => {
+        modal.classList.remove('hidden');
+        this.selectColor(savedColor);
+        if (playerNameInput) {
+          playerNameInput.focus();
+        }
+      });
+    }
+
+    // Hide modal
+    const hideModal = () => {
+      if (modal) modal.classList.add('hidden');
+    };
+
+    if (closeButton) closeButton.addEventListener('click', hideModal);
+    if (cancelButton) cancelButton.addEventListener('click', hideModal);
+
+    // Click outside modal to close
+    if (modal) {
+      modal.addEventListener('click', (e) => {
+        if (e.target === modal) hideModal();
+      });
+    }
+
+    // Save settings
+    if (saveButton) {
+      saveButton.addEventListener('click', () => {
+        const playerName = playerNameInput?.value.trim() || 'Spieler';
+        const selectedColor = this.shadow.querySelector('.color-option.selected')?.getAttribute('data-color') || 'red';
+        
+        // Save to localStorage
+        localStorage.setItem('race-game-player-name', playerName);
+        localStorage.setItem('race-game-player-color', selectedColor);
+        
+        // Update game with new settings
+        if (this.gameInstance) {
+          this.gameInstance.updatePlayerSettings(playerName, selectedColor);
+        }
+        
+        hideModal();
+      });
+    }
+  }
+
+  private populateColorGrid(colors: typeof import('./config').CAR_COLORS) {
+    const colorGrid = this.shadow.getElementById('color-grid');
+    if (!colorGrid) return;
+
+    colorGrid.innerHTML = '';
+    
+    colors.forEach(color => {
+      const colorOption = document.createElement('div');
+      colorOption.className = 'color-option';
+      colorOption.setAttribute('data-color', color.value);
+      
+      const colorPreview = document.createElement('div');
+      colorPreview.className = `color-preview car-color ${color.cssClass}`;
+      
+      const colorName = document.createElement('div');
+      colorName.className = 'color-name';
+      colorName.textContent = color.name;
+      
+      colorOption.appendChild(colorPreview);
+      colorOption.appendChild(colorName);
+      
+      colorOption.addEventListener('click', () => {
+        this.selectColor(color.value);
+      });
+      
+      colorGrid.appendChild(colorOption);
+    });
+  }
+
+  private selectColor(colorValue: string) {
+    const colorOptions = this.shadow.querySelectorAll('.color-option');
+    colorOptions.forEach(option => {
+      if (option.getAttribute('data-color') === colorValue) {
+        option.classList.add('selected');
+      } else {
+        option.classList.remove('selected');
+      }
     });
   }
 }

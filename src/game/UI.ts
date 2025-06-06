@@ -25,11 +25,9 @@ export class UI {
     this.timerElement = this.root.getElementById('timer');
     this.lapCounterElement = this.root.getElementById('lap-counter');
     this.rankingContainer = this.root.getElementById('ranking-list');
-    this.rankingElements = {
-      'Enzo': this.root.getElementById('rank-player'),
-      'F50': this.root.getElementById('rank-ai1'),
-      '360 Spider': this.root.getElementById('rank-ai2')
-    };
+    
+    // Initialize with default names, will be updated when cars are available
+    this.initializeRankingElements(['Enzo', 'F50', '360 Spider']);
 
     // Initialisiere die Anfangsrangfolge
     this.currentRanking = ['Enzo', 'F50', '360 Spider'];
@@ -81,6 +79,29 @@ export class UI {
     }
     this.loadBestTime();
     this.showBestTime();
+  }
+
+  private initializeRankingElements(carNames: string[]) {
+    this.rankingElements = {};
+    const elementIds = ['rank-player', 'rank-ai1', 'rank-ai2'];
+    
+    carNames.forEach((name, index) => {
+      const elementId = elementIds[index];
+      if (elementId) {
+        this.rankingElements[name] = this.root.getElementById(elementId);
+      }
+    });
+  }
+
+  public updateRankingElements(carNames: string[]) {
+    this.initializeRankingElements(carNames);
+    this.currentRanking = carNames;
+    
+    // Reset confidence for new names
+    this.positionConfidence.clear();
+    carNames.forEach(name => {
+      this.positionConfidence.set(name, 0);
+    });
   }
 
   private loadBestTime() {
@@ -409,25 +430,54 @@ export class UI {
         this.rankingElements['360 Spider'] = rankAi2Element;
       }
 
-      // Inhalte der Ranglistenelemente setzen
-      if (rankPlayerElement) {
-        rankPlayerElement.innerHTML = '1. Enzo <span class="car-color red"></span>';
-        this.rankingContainer.appendChild(rankPlayerElement);
-      }
+      // Populate ranking with current car information
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const gameInstance = (globalThis as { gameInstance?: any }).gameInstance;
+      if (gameInstance && typeof gameInstance.getAllCars === 'function') {
+        const cars = gameInstance.getAllCars();
+        const elements = [rankPlayerElement, rankAi1Element, rankAi2Element];
+        
+        // Clear old mappings
+        this.rankingElements = {};
+        
+        cars.forEach((car: any, index: number) => {
+          const element = elements[index];
+          if (element) {
+            element.innerHTML = `${index + 1}. ${car.getName()} <span class="car-color ${car.getColor()}"></span>`;
+            this.rankingContainer.appendChild(element);
+            // Update the ranking elements mapping with current car names
+            this.rankingElements[car.getName()] = element;
+          }
+        });
+      } else {
+        // Fallback to default
+        if (rankPlayerElement) {
+          rankPlayerElement.innerHTML = '1. Enzo <span class="car-color red"></span>';
+          this.rankingContainer.appendChild(rankPlayerElement);
+        }
 
-      if (rankAi1Element) {
-        rankAi1Element.innerHTML = '2. F50 <span class="car-color black"></span>';
-        this.rankingContainer.appendChild(rankAi1Element);
-      }
+        if (rankAi1Element) {
+          rankAi1Element.innerHTML = '2. F50 <span class="car-color black"></span>';
+          this.rankingContainer.appendChild(rankAi1Element);
+        }
 
-      if (rankAi2Element) {
-        rankAi2Element.innerHTML = '3. 360 Spider <span class="car-color orange"></span>';
-        this.rankingContainer.appendChild(rankAi2Element);
+        if (rankAi2Element) {
+          rankAi2Element.innerHTML = '3. 360 Spider <span class="car-color orange"></span>';
+          this.rankingContainer.appendChild(rankAi2Element);
+        }
       }
     }
 
+    // Get current car names for ranking
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    let carNames = ['Enzo', 'F50', '360 Spider'];
+    if (gameInstance && typeof gameInstance.getAllCars === 'function') {
+      const cars = gameInstance.getAllCars();
+      carNames = cars.map((car: any) => car.getName());
+    }
+    
     // Setze die aktuelle Rangfolge zurück
-    this.currentRanking = ['Enzo', 'F50', '360 Spider'];
+    this.currentRanking = carNames;
 
     // Setze zusätzliche Tracking-Mechanismen zurück
     this.lastDistances.clear();

@@ -289,6 +289,14 @@ export class Car {
     return this.color;
   }
 
+  public setColor(color: string): void {
+    this.color = color;
+  }
+
+  public setName(name: string): void {
+    this.name = name;
+  }
+
   public getPosition(): Position {
     return { ...this.position };
   }

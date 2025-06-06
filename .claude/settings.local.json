@@ -1,0 +1,8 @@
+{
+  "enableAllProjectMcpServers": false,
+  "permissions": {
+    "allow": [
+      "Bash(rm /Users/mkuehnel/Documents/Projects/race/src/game/TrackConfig.ts)"
+    ]
+  }
+}

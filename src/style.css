@@ -162,6 +162,26 @@ h1 {
   background-color: #ff8c00;
 }
 
+.car-color.blue {
+  background-color: #0066ff;
+}
+
+.car-color.green {
+  background-color: #00cc00;
+}
+
+.car-color.yellow {
+  background-color: #ffdd00;
+}
+
+.car-color.purple {
+  background-color: #9900cc;
+}
+
+.car-color.cyan {
+  background-color: #00cccc;
+}
+
 #reset-button {
   background-color: #e0e0e0;
   color: #222;
@@ -213,23 +233,40 @@ h1 {
   pointer-events: auto;
 }
 
-#start-button {
+#game-buttons {
+  display: flex;
+  gap: 15px;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+#start-button, #menu-button {
   position: relative;
   z-index: 20;
-  margin-bottom: 20px;
-  margin-top: 0;
+  margin: 0;
   padding: 15px 30px;
   font-size: 24px;
-  background-color: #4CAF50;
-  color: white;
   border: none;
   border-radius: 5px;
   cursor: pointer;
-  display: block;
   pointer-events: auto;
+}
+
+#start-button {
+  background-color: #4CAF50;
+  color: white;
 }
 #start-button:hover {
   background-color: #45a049;
+}
+
+#menu-button {
+  background-color: #2196F3;
+  color: white;
+}
+#menu-button:hover {
+  background-color: #1976D2;
 }
 
 #traffic-light {
@@ -503,3 +540,164 @@ button:focus-visible {
 #loading-bar-container.hide {
   display: none;
 }
+
+/* Menu Modal */
+#menu-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.8);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 1000;
+}
+
+#menu-modal.hidden {
+  display: none;
+}
+
+.modal-content {
+  background-color: #333;
+  padding: 30px;
+  border-radius: 10px;
+  max-width: 400px;
+  width: 90%;
+  color: white;
+  position: relative;
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.modal-title {
+  font-size: 24px;
+  font-weight: bold;
+  margin: 0;
+}
+
+.close-button {
+  background: none;
+  border: none;
+  color: white;
+  font-size: 28px;
+  cursor: pointer;
+  padding: 0;
+  width: 30px;
+  height: 30px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+  border-radius: 50%;
+}
+
+.form-group {
+  margin-bottom: 20px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-weight: bold;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #555;
+  border-radius: 5px;
+  background-color: #444;
+  color: white;
+  font-size: 16px;
+  box-sizing: border-box;
+}
+
+.form-group input:focus {
+  outline: none;
+  border-color: #2196F3;
+  box-shadow: 0 0 5px rgba(33, 150, 243, 0.3);
+}
+
+.color-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.color-option {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  padding: 8px;
+  border-radius: 5px;
+  transition: background-color 0.2s;
+}
+
+.color-option:hover {
+  background-color: rgba(255, 255, 255, 0.1);
+}
+
+.color-option.selected {
+  background-color: rgba(33, 150, 243, 0.3);
+  border: 2px solid #2196F3;
+}
+
+.color-preview {
+  width: 40px;
+  height: 40px;
+  border-radius: 5px;
+  border: 1px solid #666;
+}
+
+.color-name {
+  font-size: 12px;
+  text-align: center;
+}
+
+.modal-buttons {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 30px;
+}
+
+.modal-button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.2s;
+}
+
+.modal-button.primary {
+  background-color: #4CAF50;
+  color: white;
+}
+
+.modal-button.primary:hover {
+  background-color: #45a049;
+}
+
+.modal-button.secondary {
+  background-color: #666;
+  color: white;
+}
+
+.modal-button.secondary:hover {
+  background-color: #555;
+}
+

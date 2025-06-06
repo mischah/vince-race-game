@@ -23,6 +23,7 @@ export class Game {
   private lastPlayerLapState = false;
   private lastAiLapStates: boolean[] = [false, false];
   private finishOrder: string[] = [];
+  private availableColors: string[] = [];
 
   constructor(root: Document | ShadowRoot = globalThis.document) {
     this.root = root;
@@ -49,6 +50,9 @@ export class Game {
     this.collision = new Collision(this.track);
     this.audioManager = new AudioManager();
     
+    // Initialize available colors
+    this.initializeColors();
+    
     // Verstecke Ampel und Countdown initial
     const trafficLight = this.root.getElementById('traffic-light');
     const countdown = this.root.getElementById('countdown');
@@ -59,6 +63,15 @@ export class Game {
   public initialize(): void {
     // Lade alle Assets und richte Event-Listener ein
     this.track.loadTrack();
+    
+    // Apply saved settings after colors are initialized
+    this.initializeColors().then(() => {
+      // Update UI with current car names and colors
+      const allCars = this.getAllCars();
+      const carNames = allCars.map(car => car.getName());
+      this.ui.updateRankingElements(carNames);
+      this.ui.resetUI();
+    });
     
     // Platziere die Autos schon vor dem Start-Button-Klick an der Startlinie
     this.aiCars[0].setStartPosition(this.track.getStartPosition(0)); // links (schwarz)
@@ -99,9 +112,11 @@ export class Game {
       car.setAiTargetPoints(aiTargetPoints);
     });
     
-    // Verstecke den Start-Button
+    // Verstecke den Start-Button und Menu-Button
     const startButton = this.root.getElementById('start-button');
+    const menuButton = this.root.getElementById('menu-button');
     if (startButton) startButton.classList.add('hidden');
+    if (menuButton) menuButton.classList.add('hidden');
     
     // Zeige Ampel und Countdown
     const trafficLight = this.root.getElementById('traffic-light');
@@ -192,9 +207,11 @@ export class Game {
     const resetBtn = this.root.getElementById('reset-button');
     if (resetBtn) resetBtn.classList.add('hidden');
     
-    // Zeige den Start-Button
+    // Zeige den Start-Button und Menu-Button
     const startButton = this.root.getElementById('start-button');
+    const menuButton = this.root.getElementById('menu-button');
     if (startButton) startButton.classList.remove('hidden');
+    if (menuButton) menuButton.classList.remove('hidden');
     
     // Verstecke Ampel und Countdown
     const trafficLight = this.root.getElementById('traffic-light');
@@ -332,5 +349,61 @@ export class Game {
     if (this.playerCar.getLapsCompleted() >= totalLaps) {
       this.endGame();
     }
+  }
+
+  private async initializeColors(): Promise<void> {
+    try {
+      const { CAR_COLORS } = await import('../config');
+      this.availableColors = CAR_COLORS.map(color => color.value);
+      
+      // Load saved settings and apply them
+      const savedName = localStorage.getItem('race-game-player-name');
+      const savedColor = localStorage.getItem('race-game-player-color');
+      
+      if (savedName) {
+        this.playerCar.setName(savedName);
+      }
+      
+      if (savedColor && this.availableColors.includes(savedColor)) {
+        this.playerCar.setColor(savedColor);
+      }
+      
+      // Assign random colors to AI cars
+      this.assignRandomAIColors();
+    } catch (error) {
+      console.warn('Could not load car colors from config:', error);
+    }
+  }
+
+  private assignRandomAIColors(): void {
+    const playerColor = this.playerCar.getColor();
+    const availableForAI = this.availableColors.filter(color => color !== playerColor);
+    
+    // Shuffle the available colors
+    const shuffled = [...availableForAI].sort(() => Math.random() - 0.5);
+    
+    // Assign colors to AI cars
+    this.aiCars.forEach((car, index) => {
+      if (index < shuffled.length) {
+        car.setColor(shuffled[index]);
+      }
+    });
+  }
+
+  public updatePlayerSettings(name: string, color: string): void {
+    // Update player car
+    this.playerCar.setName(name);
+    this.playerCar.setColor(color);
+    
+    // Reassign AI colors to avoid conflicts
+    this.assignRandomAIColors();
+    
+    // Update UI ranking elements with new car names
+    const allCars = this.getAllCars();
+    const carNames = allCars.map(car => car.getName());
+    this.ui.updateRankingElements(carNames);
+    
+    // Update UI to reflect the changes
+    this.ui.resetUI();
   }
 }
